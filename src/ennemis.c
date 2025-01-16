@@ -2,9 +2,11 @@
 
 
 const TypeEnnemi TYPES_ENNEMIS[] = {
-    {'Z', 5, 1, "Zombie"},      // Type de base
-    {'R', 3, 2, "Runner"},      // Plus rapide mais moins résistant
-    {'T', 8, 1, "Tank"}         // Plus résistant mais même vitesse
+    // symbole, points de vie, vitesse, nom
+    {'Z', 5, 1, "Etudiant"},      // type de base
+    {'T', 3, 2, "Etudiant Talent"},      // plus rapide mais moins résistant
+    {'L', 8, 1, "Etudiant L1"},         // plus résistant mais même vitesse
+    {'A', 0, 0, "Alternant"}, // un vilain qui change de ligne une fois dans la partie en sautant aléatoirement sur une des deux lignes adjacentes ;
 };
 
 // retourne le type d'ennemi correspondant au symbole
@@ -24,6 +26,7 @@ void InitialiserEnnemiType(Etudiant* etudiant, const TypeEnnemi* type) {
 }
 
 // on considère que chaque élement dans le fichier d'apparition d'un ennemi est unique et triée par ordre croissant
+// tri d'abord par tour puis par ligne
 Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur) {
     if (fichier_ennemis == NULL) {
         erreur->statut_erreur = 1;

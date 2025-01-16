@@ -17,7 +17,7 @@ int main(int argc, char *argv[]) {
         printf("le fichier n'a pas pu être ouvert\n");
         return 1;
     }
-
+    // structure pour conserver le statut et le message d'erreur
     Erreur erreur;
     Jeu jeu;
     InitialiserJeu(&erreur, &jeu, fichier_ennemis);
@@ -57,15 +57,21 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     if (erreur->statut_erreur==1) {
         return;
     }
+    IntroduireJeu(erreur);
     Etudiant etudiants[] = InitialisationEnnemis(fichier_ennemis, jeu, &erreur);
     if (erreur->statut_erreur==1) {
         return;
     }
+    // pointe vers le premier ennemi
     jeu->etudiants=etudiants;
-    Tourelle tourelles[] = InitialisationTourelles(&erreur);
+    //TODO
+    VisualiserEnnemis(jeu->etudiants, erreur);
+    //TODO
+    Tourelle tourelles[] = InitialisationTourelles(&jeu->cagnotte, &erreur);
     if (erreur->statut_erreur==1) {
         return;
     }
+    // pointe vers la première tourelle
     jeu->tourelles = tourelles;
     return;
 }

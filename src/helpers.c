@@ -18,7 +18,7 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
         return;
     }
 
-    // tableau alloué sur la pile, pas besoin de free
+    // tableau alloué non dynamiquement, pas besoin de free
     Etudiant ennemis[NB_ENNEMIS_MAX];
     int nbEnnemis = 0;
 

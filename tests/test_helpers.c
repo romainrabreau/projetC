@@ -3,7 +3,8 @@
 #include "header.h"
 
 
-// Fonction pour exécuter les tests
+// Fonction pour tester le tri et la résolution des doublons dans un fichier d'ennemis
+
 void test_ResoudreFichier() {
     // Création d'un fichier temporaire
     const char* nom_fichier_test = "test_ennemis.txt";
