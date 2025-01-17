@@ -74,7 +74,9 @@ typedef struct {
 const TypeEnnemi* trouverType(char symbole);
 void InitialiserEnnemiType(Etudiant* etudiant, const TypeEnnemi* type);
 Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur);
-// fonctions de gestion des tourelles
+
+// protopypes de fonctions de gestion des tourelles
+int VerifEntreeLigne(char * ligne_tourelles);
 
 
 // fonctions d'aide

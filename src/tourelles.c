@@ -35,7 +35,7 @@ Tourelle * InitialiserTourelles(int * cagnotte, Erreur* erreur){
         if (ligne_tourelles[0] == '\n') {
             continue;
         }
-        sortie_verif = VerifEntreeLigne(ligne_tourelles, cagnotte);
+        sortie_verif = VerifEntreeLigne(ligne_tourelles);
         if (sortie_verif == -1) {
             printf("Votre entrée est invalide, veuillez re-placer les tourelles en respectant le format\n");
             i--;
@@ -50,7 +50,7 @@ Tourelle * InitialiserTourelles(int * cagnotte, Erreur* erreur){
             //TODO
         }
     }
-
+    return premier;
 }
 
 void LibererTourelles(Tourelle* premier) {
@@ -61,7 +61,7 @@ void LibererTourelles(Tourelle* premier) {
     }
 }
 
-int VerifEntreeLigne(char * ligne_tourelles, const int * cagnotte) {
+int VerifEntreeLigne(char * ligne_tourelles) {
     /* vérifie 
     1. La validité des symboles de tourelles
     2. La validité du numéro de la position (entre 0 et NB_EMPLACEMENTS-1)
@@ -69,17 +69,23 @@ int VerifEntreeLigne(char * ligne_tourelles, const int * cagnotte) {
     4. Les paires sont symbole, position
     5. Pas de dépassement de la cagnotte
 
-    Retourne le nombre d'ECTS dépassés
+    Retourne le nombre d'ECTS dépensés
     */
     int positions[NB_EMPLACEMENTS] = {0};  // Pour marquer les positions utilisées
     int solde_courant = 0;
     char symbole;
     int position;
+    int nb_matchs;
     char* ptr = ligne_tourelles;
     
-    // On lit deux par deux : symbole puis position
-    while (sscanf(ptr, " %c %d", &symbole, &position) == 2) {
-        // Vérifie le symbole
+    // paire symbole position
+    //TODO possible, renvoyer l'erreur exacte
+    if (sscanf(ptr, " %c %d", &symbole, &position) != 2) return -1;
+
+    while ((nb_matchs = sscanf(ptr, " %c %d", &symbole, &position)) == 2) {
+        if (nb_matchs != 2) return -1;  // invalide
+
+        // validité du symbole
         const TypeTourelle* type = NULL;
         for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
             if (TYPES_TOURELLES[i].symbole == symbole) {
@@ -87,24 +93,26 @@ int VerifEntreeLigne(char * ligne_tourelles, const int * cagnotte) {
                 break;
             }
         }
-        if (!type) return -1;  // Symbole invalide
+        if (!type) return -1;  
         
-        // Vérifie la position
+        // validité de la position
         if (position < 0 || position >= NB_EMPLACEMENTS) return -1;
         if (positions[position]) return -1;  // Position déjà utilisée
         positions[position] = 1;
         
-        // Vérifie le coût
+        // renouvellement du solde
         solde_courant += type->prix;
-        if (solde_courant > *cagnotte) {
-            return solde_courant - *cagnotte;  // Retourne le dépassement
-        }
         
-        // Avance au prochain couple symbole-position
+        // avance au prochain couple symbole-position
         // On cherche la virgule ou la fin de ligne
-        while (*ptr && *ptr != ',' && *ptr != '\n') ptr++;
+        //PAS FINI
+        printf("ptr : %c\n", *ptr);
+        for (; *ptr && *(ptr+1) != ',' && *ptr != '\n'; ptr++);
         if (*ptr == ',') ptr++;
+        if (*ptr )
+        printf("solde_courant : %d\n", solde_courant);
+        printf("ptr : %c\n", *ptr);
     }
     
-    return 0;  // Tout est valide
+    return solde_courant;
 }
