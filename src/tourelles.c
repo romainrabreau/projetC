@@ -7,6 +7,15 @@ const TypeTourelle TYPES_TOURELLES[] = {
 
 };
 
+const TypeTourelle* trouverTypeTourelle(char symbole) {
+    for(int i = 0; i < NB_TYPES_TOURELLES; i++) {
+        if(TYPES_TOURELLES[i].symbole == symbole) {
+            return &TYPES_TOURELLES[i];
+        }
+    }
+    return NULL;
+}
+
 Tourelle * InitialiserTourelles(int * cagnotte, Erreur* erreur){
     printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n");
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
@@ -37,29 +46,26 @@ Tourelle * InitialiserTourelles(int * cagnotte, Erreur* erreur){
         }
         sortie_verif = VerifEntreeLigne(ligne_tourelles);
         if (sortie_verif == -1) {
-            printf("Votre entrée est invalide, veuillez re-placer les tourelles en respectant le format\n");
+            printf("Votre entrée est invalide, veuillez re-placer les tourelles en respectant le format et les symboles\n");
             i--;
             continue;
         }
-        if (sortie_verif > 0) {
-            printf("Vous avez dépassé le solde de votre cagnotte de %d ECTS, veuillez re-placer les tourelles\n", sortie_verif);
+        if (sortie_verif - *cagnotte> 0) {
+            printf("Vous avez dépassé le solde de votre cagnotte de %d ECTS, veuillez re-placer les tourelles\n", sortie_verif - *cagnotte);
             i--;
             continue;
         }
         else {
+            *cagnotte -= sortie_verif;
+            //met à jour
+            AjouterTourelles(premier, ligne_tourelles, i);
+
             //TODO
         }
     }
     return premier;
 }
 
-void LibererTourelles(Tourelle* premier) {
-    while (premier != NULL) {
-        Tourelle* temp = premier;
-        premier = premier->next;
-        free(temp);
-    }
-}
 
 int VerifEntreeLigne(char * ligne_tourelles) {
     /* vérifie 
@@ -86,13 +92,7 @@ int VerifEntreeLigne(char * ligne_tourelles) {
         if (nb_matchs != 2) return -1;  // invalide
 
         // validité du symbole
-        const TypeTourelle* type = NULL;
-        for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
-            if (TYPES_TOURELLES[i].symbole == symbole) {
-                type = &TYPES_TOURELLES[i];
-                break;
-            }
-        }
+        const TypeTourelle* type = trouverTypeTourelle(symbole);
         if (!type) return -1;  
         
         // validité de la position
@@ -105,14 +105,66 @@ int VerifEntreeLigne(char * ligne_tourelles) {
         
         // avance au prochain couple symbole-position
         // On cherche la virgule ou la fin de ligne
-        //PAS FINI
+        //TODO PAS FINI, échoue dans le cas de deux virgules consécutives, à tester
         printf("ptr : %c\n", *ptr);
-        for (; *ptr && *(ptr+1) != ',' && *ptr != '\n'; ptr++);
+        for (; *ptr && *(ptr) != ',' && *ptr != '\n'; ptr++);
         if (*ptr == ',') ptr++;
-        if (*ptr )
+        if (*ptr == ',') return -1;
         printf("solde_courant : %d\n", solde_courant);
         printf("ptr : %c\n", *ptr);
     }
     
     return solde_courant;
+}
+
+void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
+    char symbole;
+    int position;
+    int nb_matchs;
+    // pointeur vers la paire symbole position
+    char* ptr = ligne_tourelles;
+    // on trouve la dernière tourelle pour y juxtaposer les nouvelles
+    Tourelle* dernier = premier;
+    while (dernier->next != NULL) {
+        dernier = dernier->next;
+    }
+    while ((nb_matchs = sscanf(ptr, " %c %d", &symbole, &position)) == 2) {
+        Tourelle* nouvelle_tourelle = (Tourelle*)malloc(sizeof(Tourelle));
+        if (nouvelle_tourelle == NULL) {
+            printf("Erreur d'allocation mémoire\n");
+            printf("Les tourelles ajoutées vont être supprimées\n");
+            LibererTourelles(premier);
+            return;
+        }
+        TypeTourelle * type = TrouverTypeTourelle(symbole);
+        nouvelle_tourelle->type = symbole;
+        nouvelle_tourelle->pointsDeVie = type->pointsDeVie;
+        nouvelle_tourelle->prix = type->prix;
+
+        nouvelle_tourelle->ligne = ligne;
+        nouvelle_tourelle->position = position;
+        
+        // chainage par next
+        nouvelle_tourelle->next = NULL;
+        if (premier == NULL) {
+            premier = nouvelle_tourelle;
+        }
+        else {
+            dernier->next = nouvelle_tourelle;
+        }
+        dernier = nouvelle_tourelle;
+
+        //  avance au prochain couple symbole-position, même s'il y a des espaces
+        while (*ptr && *ptr != ',' && *ptr != '\n') ptr++;
+        if (*ptr == ',') ptr++;
+    }    
+}
+
+
+void LibererTourelles(Tourelle* premier) {
+    while (premier != NULL) {
+        Tourelle* temp = premier;
+        premier = premier->next;
+        free(temp);
+    }
 }

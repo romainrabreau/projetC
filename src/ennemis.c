@@ -10,19 +10,13 @@ const TypeEnnemi TYPES_ENNEMIS[] = {
 };
 
 // retourne le type d'ennemi correspondant au symbole
-const TypeEnnemi* trouverType(char symbole) {
+const TypeEnnemi* trouverTypeEnnemi(char symbole) {
     for(int i = 0; i < NB_TYPES_ENNEMIS; i++) {
         if(TYPES_ENNEMIS[i].symbole == symbole) {
             return &TYPES_ENNEMIS[i];
         }
     }
     return NULL;
-}
-
-void InitialiserEnnemiType(Etudiant* etudiant, const TypeEnnemi* type) {
-    etudiant->pointsDeVie = type->pointsDeVie;
-    etudiant->vitesse = type->vitesse;
-    etudiant->type = type->symbole;
 }
 
 // on considère que chaque élement dans le fichier d'apparition d'un ennemi est unique et triée par ordre croissant
@@ -36,7 +30,7 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
 
     Etudiant* premier = NULL;  // premier ajouté
     Etudiant* dernier = NULL;  // dernier ajouté
-    Etudiant* lignes_ennemis[NB_LIGNES] = {NULL}; // dernier ajouté par ligne
+    Etudiant* lignes_ennemis[NB_LIGNES] = {NULL}; // tableau des derniers ajoutés par ligne
 
     char ligne_fichier[256];
 
@@ -67,10 +61,15 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         // Initialisation des champs
         nouvel_etudiant->ligne = ligne;
         nouvel_etudiant->tour = tour;
+        nouvel_etudiant->position = 0;
+
         nouvel_etudiant->next = NULL;
         nouvel_etudiant->next_line = NULL;
         nouvel_etudiant->prev_line = NULL;
-        InitialiserEnnemiType(nouvel_etudiant, type);
+        
+        nouvel_etudiant->vitesse = type->vitesse;
+        nouvel_etudiant->type = type->symbole;
+        nouvel_etudiant->pointsDeVie = type->pointsDeVie;
 
         // ajout à la fin de la liste principale
         if (premier == NULL) {
@@ -97,7 +96,7 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
 
 // vérifie que le type est dans les types autorisés
 TypeEnnemi* VerifType(int *tour, int *ligne, char *type, Erreur *erreur) {
-    const TypeEnnemi* type_ennemi = trouverType(type);
+    const TypeEnnemi* type_ennemi = trouverTypeEnnemi(type);
     if (type_ennemi == NULL) {
         erreur->statut_erreur = 1;
         strcpy(erreur->msg_erreur, "type d'ennemi invalide\n");
@@ -108,10 +107,9 @@ TypeEnnemi* VerifType(int *tour, int *ligne, char *type, Erreur *erreur) {
 
 // libère dynamiquement la mémoire allouée pour les ennemis
 void LibererEnnemis(Etudiant* premier) {
-    Etudiant* courant = premier;
-    while (courant != NULL) {
-        Etudiant* suivant = courant->next;
+    while (premier != NULL) {
+        Etudiant* courant = premier;
+        premier = premier->next;
         free(courant);
-        courant = suivant;
     }
 }
