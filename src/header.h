@@ -76,8 +76,10 @@ void InitialiserEnnemiType(Etudiant* etudiant, const TypeEnnemi* type);
 Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur);
 
 // protopypes de fonctions de gestion des tourelles
+Tourelle * InitialiserTourelles(int * cagnotte, Erreur* erreur);
 int VerifEntreeLigne(char * ligne_tourelles);
-
+void LibererTourelles(Tourelle* premier);
+void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne);
 
 // fonctions d'aide
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur);

@@ -65,7 +65,7 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     // pointe vers le premier ennemi
     jeu->etudiants=etudiants;
     //TODO
-    VisualiserEnnemis(jeu->etudiants, erreur);
+    //VisualiserEnnemis(jeu->etudiants, erreur);
     //TODO
     Tourelle tourelles[] = InitialisationTourelles(&jeu->cagnotte, &erreur);
     if (erreur->statut_erreur==1) {
@@ -73,6 +73,8 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     }
     // pointe vers la première tourelle
     jeu->tourelles = tourelles;
+
+
     return;
 }
 
@@ -80,4 +82,44 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
 void LibererJeu(Jeu* jeu) {
     LibererEnnemis(jeu->etudiants);
     LibererTourelles(jeu->tourelles);
+}
+
+void JouerTour(Jeu* jeu, Erreur* erreur) {
+    while (18) {
+        jeu->tour++;
+
+        printf("Tour %d\n", jeu->tour);
+
+        // Étape 1 : Entrée des ennemis au tour courant
+        ApparitionEnnemis(jeu, erreur);
+        if (erreur->statut_erreur == 1) return;
+
+        // Étape 2 : Résolution des actions des tourelles
+        ResoudreActionsTourelles(jeu, erreur);
+        if (erreur->statut_erreur == 1) return;
+
+        // Étape 3 : Résolution des actions des ennemis (combat avec tourelles)
+        ResoudreActionsEnnemis(jeu, erreur);
+        if (erreur->statut_erreur == 1) return;
+
+        // Étape 4 : Déplacement des ennemis
+        DeplacerEnnemis(jeu, erreur);
+        if (erreur->statut_erreur == 1) return;
+
+        // Étape 5 : Vérification des conditions de fin de jeu
+        if (VerifierDefaite(jeu)) {
+            printf("Vous avez perdu ... Les ennemis ont pris le contrôle de l'université.\n");
+            break;
+        }
+
+        if (VerifierVictoire(jeu)) {
+            printf("Victoire, bien joué. Vous avez défendu l'université contre tous les étudiants.\n");
+            break;
+        }
+        // nettoyer le \n restant
+        while ((getchar()) != '\n');
+        // Pause pour simuler le déroulement du jeu
+        printf("Appuyez sur Entrée pour continuer...\n");
+        getchar();
+    }
 }

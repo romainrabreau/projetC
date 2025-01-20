@@ -49,13 +49,35 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     qsort(ennemis, nbEnnemis, sizeof(Etudiant), comparerEnnemis);
 
     rewind(fichier_ennemis);
+
+    int tour_courant = ennemis[0].tour;
+    Etudiant bouges[NB_EMPLACEMENTS]; // tableau pour stocker les ennemis relégués
+    int nb_bouges = 0;
+    int diff = 0;
+
     // gestion des doublons + écriture du nouveau fichier
     fprintf(fichier_ennemis, "%d %d %c\n", ennemis[0].tour, ennemis[0].ligne, ennemis[0].type);
-    
     for (int i = 1; i < nbEnnemis; i++) {
+            // Si on change de tour
+        if (ennemis[i].tour > tour_courant) {
+            // On écrit les repoussés qui sont pour ce tour
+            for (int j = 0; j < nb_bouges; j++) {
+                if (bouges[j].ligne < ennemis[i].ligne) {
+                    fprintf(fichier_ennemis, "%d %d %c\n", bouges[j].tour, bouges[j].ligne, bouges[j].type);
+                }
+                else {
+                    fprintf(fichier_ennemis, "%d %d %c\n", ennemis[i].tour, ennemis[i].ligne, ennemis[i].type);
+                }
+            }
+            // On réinitialise la liste des redélégués au tour suivant
+            nb_bouges = 0;
+            tour_courant = ennemis[i].tour;
+        }
+
         if (ennemis[i].tour == ennemis[i - 1].tour && ennemis[i].ligne == ennemis[i - 1].ligne) {
             ennemis[i].tour++; // décale le tour de l'ennemi suivant
-        }
+            continue;
+            }
         fprintf(fichier_ennemis, "%d %d %c\n", ennemis[i].tour, ennemis[i].ligne, ennemis[i].type);
     }
     // remet le curseur au début du fichier

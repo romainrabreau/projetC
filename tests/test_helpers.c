@@ -15,7 +15,7 @@ void test_ResoudreFichier() {
     fprintf(fichier_test, "3 2 Z\n");
     fprintf(fichier_test, "1 3 T\n");
     fprintf(fichier_test, "2 1 R\n");
-    fprintf(fichier_test, "3 2 Z\n"); // Doublon à résoudre
+    fprintf(fichier_test, "1 1 Z\n"); // doublon à résoudre
     fprintf(fichier_test, "1 1 T\n");
 
     // Rewind pour préparer la lecture par ResoudreFichier
@@ -34,15 +34,15 @@ void test_ResoudreFichier() {
     // Vérifie le contenu trié et sans doublons
     char ligne[256];
     fgets(ligne, sizeof(ligne), fichier_test);
-    assert(strcmp(ligne, "1 1 T\n") == 0);
+    assert(strcmp(ligne, "1 1 Z\n") == 0);
     fgets(ligne, sizeof(ligne), fichier_test);
     assert(strcmp(ligne, "1 3 T\n") == 0); // Ligne attendue
     fgets(ligne, sizeof(ligne), fichier_test);
     assert(strcmp(ligne, "2 1 R\n") == 0); // Ligne attendue
     fgets(ligne, sizeof(ligne), fichier_test);
-    assert(strcmp(ligne, "3 2 Z\n") == 0); // Ligne attendue
+    assert(strcmp(ligne, "3 1 T\n") == 0); // Ligne attendue
     fgets(ligne, sizeof(ligne), fichier_test);
-    assert(strcmp(ligne, "4 2 Z\n") == 0); // Doublon décalé au tour suivant
+    assert(strcmp(ligne, "3 2 Z\n") == 0); // Doublon décalé au tour suivant
 
     // Fermeture et suppression du fichier temporaire
     fclose(fichier_test);
