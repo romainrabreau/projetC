@@ -64,8 +64,8 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     // pointe vers le premier ennemi
     jeu->etudiants=etudiants;
     //TODO
-    //VisualiserEnnemis(jeu->etudiants, erreur);
-    //TODO
+    VisualiserEnnemis(jeu->etudiants, erreur);
+    //TOreDO
     Tourelle tourelles[] = InitialisationTourelles(&jeu->cagnotte, &erreur);
     if (erreur->statut_erreur==1) {
         return;
@@ -106,7 +106,7 @@ void JouerTour(Jeu* jeu, Erreur* erreur) {
 
         // Étape 5 : Vérification des conditions de fin de jeu
         if (VerifierDefaite(jeu)) {
-            printf("Vous avez perdu ... Les ennemis ont pris le contrôle de l'université.\n");
+            printf("Vous avez perdu ... Les etudiants ont pris le contrôle de l'université.\n");
             break;
         }
 
