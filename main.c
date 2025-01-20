@@ -75,7 +75,6 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     return;
 }
 
-
 void LibererJeu(Jeu* jeu) {
     LibererEnnemis(jeu->etudiants);
     LibererTourelles(jeu->tourelles);
