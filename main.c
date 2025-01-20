@@ -1,6 +1,5 @@
 #include "header.h"
 
-
 int main(int argc, char *argv[]) {
     if (argc!=2) {
         printf("assurez-vous d'avoir entré exactement un nom de fichier\n");
