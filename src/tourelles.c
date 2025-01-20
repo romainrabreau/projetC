@@ -7,14 +7,8 @@ const TypeTourelle TYPES_TOURELLES[] = {
 
 };
 
-const TypeTourelle* trouverTypeTourelle(char symbole) {
-    for(int i = 0; i < NB_TYPES_TOURELLES; i++) {
-        if(TYPES_TOURELLES[i].symbole == symbole) {
-            return &TYPES_TOURELLES[i];
-        }
-    }
-    return NULL;
-}
+
+const TypeTourelle* trouverTypeTourelle(char symbole);
 
 Tourelle * InitialiserTourelles(int * cagnotte, Erreur* erreur){
     printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n");
@@ -136,7 +130,7 @@ void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
             LibererTourelles(premier);
             return;
         }
-        TypeTourelle * type = TrouverTypeTourelle(symbole);
+        const TypeTourelle * type = trouverTypeTourelle(symbole);
         nouvelle_tourelle->type = symbole;
         nouvelle_tourelle->pointsDeVie = type->pointsDeVie;
         nouvelle_tourelle->prix = type->prix;
@@ -167,4 +161,13 @@ void LibererTourelles(Tourelle* premier) {
         premier = premier->next;
         free(temp);
     }
+}
+
+const TypeTourelle* trouverTypeTourelle(char symbole) {
+    for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
+        if (TYPES_TOURELLES[i].symbole == symbole) {
+            return &TYPES_TOURELLES[i];
+        }
+    }
+    return NULL;
 }
