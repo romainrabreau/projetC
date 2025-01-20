@@ -82,4 +82,6 @@ int VerifEntreeLigne(char * ligne_tourelles);
 // fonctions d'aide
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur);
 
+void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur);
+
 #endif
