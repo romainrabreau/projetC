@@ -61,14 +61,14 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         // Initialisation des champs
         nouvel_etudiant->ligne = ligne;
         nouvel_etudiant->tour = tour;
-        nouvel_etudiant->position = 0;
+        nouvel_etudiant->position = -1;
 
         nouvel_etudiant->next = NULL;
         nouvel_etudiant->next_line = NULL;
         nouvel_etudiant->prev_line = NULL;
         
         nouvel_etudiant->vitesse = type->vitesse;
-        nouvel_etudiant->type = type->symbole;
+        nouvel_etudiant->type = (int)type->symbole;
         nouvel_etudiant->pointsDeVie = type->pointsDeVie;
 
         // ajout à la fin de la liste principale

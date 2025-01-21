@@ -27,6 +27,7 @@ d’apparition dans le jeu via le champ next mais ils sont de plus doublement ch
 du programme, à chaque insertion mais aussi à chaque suppression.
 */
 typedef struct etudiant {
+    // type correspond a la valeur ASCII du symbole associé
     int type;
     int pointsDeVie;
     int ligne;
