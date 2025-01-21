@@ -131,7 +131,7 @@ void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
             return;
         }
         const TypeTourelle * type = trouverTypeTourelle(symbole);
-        nouvelle_tourelle->type = symbole;
+        nouvelle_tourelle->type = (int)symbole;
         nouvelle_tourelle->pointsDeVie = type->pointsDeVie;
         nouvelle_tourelle->prix = type->prix;
 

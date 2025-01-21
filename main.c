@@ -90,29 +90,29 @@ void JouerTour(Jeu* jeu, Erreur* erreur) {
 
         printf("Tour %d\n", jeu->tour);
 
-        // Étape 1 : Entrée des ennemis au tour courant
+        // FAIT Étape 1 : Entrée des nouveux ennemis
         ApparitionEnnemis(jeu, erreur);
         if (erreur->statut_erreur == 1) return;
 
-        // Étape 2 : Résolution des actions des tourelles
+        // FAIT DEBUT Étape 2 : Résolution des actions des tourelles
         ResoudreActionsTourelles(jeu, erreur);
         if (erreur->statut_erreur == 1) return;
 
-        // Étape 3 : Résolution des actions des ennemis (combat avec tourelles)
+        // FAIT MAIS PAS SUR Étape 3 : Résolution des actions des ennemis
         ResoudreActionsEnnemis(jeu, erreur);
         if (erreur->statut_erreur == 1) return;
 
-        // Étape 4 : Déplacement des ennemis
+        // FAIT Étape 4 : Déplacement des ennemis
         DeplacerEnnemis(jeu, erreur);
         if (erreur->statut_erreur == 1) return;
 
-        // Étape 5 : Vérification des conditions de fin de jeu
-        if (VerifierDefaite(jeu)) {
-            printf("Vous avez perdu ... Les ennemis ont pris le contrôle de l'université.\n");
+        // FAIT Étape 5 : conditions de fin de jeu
+        if (PartiePerdue(jeu)==1) {
+            printf("Vous avez perdu ... Les etudiants ont pris le contrôle de l'université.\n");
             break;
         }
 
-        if (VerifierVictoire(jeu)) {
+        if (PartieGagnee(jeu)==1) {
             printf("Victoire, bien joué. Vous avez défendu l'université contre tous les étudiants.\n");
             break;
         }
