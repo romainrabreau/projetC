@@ -1,19 +1,4 @@
 #include "header.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-/*
-  Rappel de la structure TypeEnnemi :
-
-  typedef struct {
-      const char symbole; // Caractère représentant le type
-      int pointsDeVie;
-      int degats;
-      int vitesse;
-      const char* nom;    // Nom du type
-  } TypeEnnemi; 
-*/
 
 // Types d'ennemis (symbole, pointsDeVie, degats, vitesse, nom)
 const TypeEnnemi TYPES_ENNEMIS[] = {

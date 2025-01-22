@@ -34,7 +34,6 @@ Tourelle* InitialiserTourelles(int *cagnotte, Erreur* erreur) {
         printf("Prix : %d\n\n",         TYPES_TOURELLES[i].prix);
     }
 
-    // Exemples d'éventuelles caractéristiques spéciales
     printf("Certaines tourelles peuvent avoir des caractéristiques spéciales...\n\n");
 
     printf("Vous avez %d ECTS pour défendre %d lignes,\n", *cagnotte, NB_LIGNES);
@@ -45,31 +44,27 @@ Tourelle* InitialiserTourelles(int *cagnotte, Erreur* erreur) {
     printf("(SYMBOLE_X doit être un symbole de tourelle valide.\n");
     printf(" EMPLACEMENT_i doit être un entier [0..%d].)\n\n", NB_EMPLACEMENTS - 1);
 
-    Tourelle* premier = NULL;  // Liste chaînée vide au départ
+    Tourelle* premier = NULL;
 
-    for (int i = 0; i < NB_LIGNES; i++) {
+    for (int i = 1; i <= NB_LIGNES; i++) {
         printf("Il vous reste %d ECTS.\n", *cagnotte);
         printf("Ligne %d : ", i);
 
         char ligne_tourelles[256];
         if (!fgets(ligne_tourelles, sizeof(ligne_tourelles), stdin)) {
-            // Erreur ou EOF
             break;
         }
         if (ligne_tourelles[0] == '\n') {
-            // L'utilisateur n'a rien saisi, on passe à la ligne suivante
             continue;
         }
 
-        // On vérifie la validité de l'entrée et on récupère le coût total
         int cout_total = VerifEntreeLigne(ligne_tourelles);
         if (cout_total == -1) {
             printf("Entrée invalide. Veuillez re-placer les tourelles.\n\n");
-            i--; // on refait la même ligne
+            i--;
             continue;
         }
 
-        // Vérifie si on ne dépasse pas la cagnotte
         if (cout_total > *cagnotte) {
             printf("Vous dépassez votre cagnotte de %d ECTS, re-placer s.v.p.\n\n",
                    cout_total - *cagnotte);
@@ -77,7 +72,6 @@ Tourelle* InitialiserTourelles(int *cagnotte, Erreur* erreur) {
             continue;
         }
 
-        // Sinon on ajoute les tourelles à la liste
         *cagnotte -= cout_total;
         premier = AjouterTourelles(premier, ligne_tourelles, i);
         // TODO : si besoin, on peut visualiser la ligne tout de suite
@@ -99,7 +93,7 @@ Tourelle* InitialiserTourelles(int *cagnotte, Erreur* erreur) {
 int VerifEntreeLigne(char* ligne_tourelles) {
     if (!ligne_tourelles) return -1;
 
-    int positions[NB_EMPLACEMENTS] = {0};  // Pour marquer les positions déjà utilisées
+    int positions[NB_EMPLACEMENTS] = {0}; 
     int solde_courant = 0;
     char symbole;
     int position;
@@ -110,36 +104,27 @@ int VerifEntreeLigne(char* ligne_tourelles) {
         // Vérif symbole
         const TypeTourelle* type = trouverTypeTourelle(symbole);
         if (!type) {
-            return -1;  // symbole inconnu
+            return -1;
         }
 
-        // Vérif position
         if (position < 0 || position >= NB_EMPLACEMENTS) {
-            return -1;  // hors bornes
+            return -1;
         }
         if (positions[position]) {
-            return -1;  // déjà utilisée
+            return -1;
         }
         positions[position] = 1;
 
-        // Ajout du prix
         solde_courant += type->prix;
 
-        // On avance ptr jusqu'à la virgule ou fin
-        // en sautant les caractères (symboles et positions)
         while (*ptr && *ptr != ',' && *ptr != '\n') {
             ptr++;
         }
         if (*ptr == ',') {
-            // on saute la virgule
             ptr++;
-            // si virgule suivie d'une autre virgule => format invalide
             if (*ptr == ',') return -1;
         }
     }
-
-    // Si on n'a rien lu dès le départ => -1
-    // (c'est vous qui voyez si vous voulez renvoyer 0 ou -1)
     return solde_courant;
 }
 
@@ -168,7 +153,6 @@ Tourelle* AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) 
             break;
         }
 
-        // Nouvel élément
         Tourelle* nouvelle = (Tourelle*)malloc(sizeof(Tourelle));
         if (!nouvelle) {
             printf("Erreur d'allocation mémoire pour la tourelle.\n");
@@ -179,24 +163,19 @@ Tourelle* AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) 
         nouvelle->pointsDeVie = type->pointsDeVie;
         nouvelle->position = position;
         nouvelle->prix = type->prix;
-        // si vous voulez stocker les degats : (pas inclus dans la struct Tourelle)
-        // nouvelle->degats = type->degats; // (si vous ajoutez un champ 'degats')
         nouvelle->ligne = ligne;
         nouvelle->next = NULL;
 
         // Insertion en fin de liste
         if (!premier) {
-            // Si la liste était vide, premier pointe sur cette tourelle
             premier = nouvelle;
             dernier = nouvelle; 
         }
         else {
-            // On ajoute à la suite de 'dernier'
             dernier->next = nouvelle;
             dernier = nouvelle;
         }
 
-        // Avance ptr jusqu'à la prochaine virgule ou fin
         while (*ptr && *ptr != ',' && *ptr != '\n') {
             ptr++;
         }
@@ -214,35 +193,22 @@ void supprimerTourelle(Jeu *jeu, Tourelle *t)
     Tourelle *current = jeu->tourelles;
     Tourelle *prev    = NULL;
 
-    // Parcours de la liste pour trouver `t`
     while (current) {
         if (current == t) {
-            // Si c'est le premier élément
             if (prev == NULL) {
-                // On déplace le head de la liste
                 jeu->tourelles = current->next;
             }
             else {
-                // Sinon on relie le précédent à l'élément suivant
                 prev->next = current->next;
             }
-            
-            // On libère la mémoire de la tourelle
             free(current);
-            return;  // important : on sort après la suppression
+            return;
         }
         prev    = current;
         current = current->next;
     }
-    
-    // Si la tourelle n'a pas été trouvée, on ne fait rien de plus
 }
 
-
-/*
- *  LibererTourelles
- *  - Parcourt la liste chaînée et libère chaque élément.
- */
 void LibererTourelles(Tourelle* premier) {
     while (premier) {
         Tourelle* temp = premier;

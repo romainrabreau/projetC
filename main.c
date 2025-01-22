@@ -84,23 +84,19 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // Ouvre le fichier
-    FILE *fichier_ennemis = fopen(argv[1], "r");
+    FILE *fichier_ennemis = fopen(argv[1], "r+");
     if (!fichier_ennemis) {
         printf("Le fichier n'a pas pu être ouvert\n");
         return 1;
     }
 
-    // Crée la structure pour conserver le statut et le message d'erreur
     Erreur erreur;
     erreur.statut_erreur = 0;
     strcpy(erreur.msg_erreur, "");
 
-    // Crée la structure de jeu
     Jeu jeu;
     memset(&jeu, 0, sizeof(Jeu));
 
-    // Initialise le jeu
     InitialiserJeu(&erreur, &jeu, fichier_ennemis);
     if (erreur.statut_erreur == 1) {
         printf("%s", erreur.msg_erreur);
@@ -108,7 +104,6 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    // On n'a plus besoin du fichier
     fclose(fichier_ennemis);
 
     JouerPartie(&jeu, &erreur);
@@ -116,7 +111,6 @@ int main(int argc, char *argv[]) {
         printf("%s", erreur.msg_erreur);
     }
 
-    // Libère la mémoire allouée (ennemis, tourelles, etc.)
     LibererJeu(&jeu);
 
     return 0;

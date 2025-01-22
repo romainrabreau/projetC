@@ -1,10 +1,7 @@
 #include "header.h"
 
-// Apparition de nouveaux ennemis (ex. position initiale, etc.)
 void ApparitionEnnemis(Jeu* jeu, Erreur* err) {
-    // Exemple simplifié :
-    (void)err; // si vous n'utilisez pas err ici
-
+    (void)err;
     Etudiant* e = jeu->etudiants;
     while(e) {
         if(e->tour == jeu->tour && e->position >= NB_EMPLACEMENTS) {
@@ -14,39 +11,37 @@ void ApparitionEnnemis(Jeu* jeu, Erreur* err) {
     }
 }
 
-// Résolution des actions des tourelles
-void ResoudreActionsTourelles(Jeu* jeu, Erreur* err) {
-    (void)err; // ignorer le paramètre si non utilisé
+void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
+    // inflige des dégâts aux ennemis en fonction du type de tourelle
     Tourelle* t = jeu->tourelles;
-    while(t) {
-        // On récupère le type de la tourelle pour connaître ses dégâts
-        const TypeTourelle* tType = trouverTypeTourelle((char)t->type);
-        if(t->pointsDeVie <= 0) {
-            // Si la tourelle est détruite, on la supprime
-            Tourelle* tmp = t->next;
-            supprimerTourelle(jeu, t);
-            t = tmp;
+    while (t != NULL) {
+        if (t->pointsDeVie <= 0) {
+            // la tourelle est morte
+            t = t->next;
             continue;
         }
-        // Tir sur un ennemi dans la même ligne (ex. un seul ennemi, le premier trouvé)
         Etudiant* e = jeu->etudiants;
-        while(e) {
-            Etudiant* e_next = e->next;
-            if(e->ligne == t->ligne && e->pointsDeVie > 0) {
-                // On inflige des dégâts
-                e->pointsDeVie -= tType->degats;
-                if(e->pointsDeVie <= 0) {
-                    supprimerEtudiant(jeu, e);
-                }
-                break; // si la tourelle n'attaque qu'un ennemi par tour
-            }
-            e = e_next;
+        if (e == NULL) {
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "pas d'ennemis à attaquer");
         }
+        while (!(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position > t->position)) {
+            // si l'ennemi est mort, ou derrière la tourelle, ou sur une ligne différente
+                e = e->next;
+        }
+        if (e == NULL) {
+            // pas d'ennemis à attaquer pour cette tourelle
+            continue;
+        }
+        if ((char)t->type == 'A') {
+            // To Do adapter en fonction du type les dégats.
+            e->pointsDeVie -= 1;
+        }
+        //TODO si tourelles spéciales implémenter
         t = t->next;
     }
+    return;
 }
-
-// Résolution des actions des ennemis
 void ResoudreActionsEnnemis(Jeu* jeu, Erreur* err) {
     (void)err;
     Tourelle* t = jeu->tourelles;

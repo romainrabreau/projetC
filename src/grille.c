@@ -4,11 +4,9 @@ void AfficherPlateau(Jeu* jeu) {
     printf("\033[0;0H");
     printf("\033[2J");
 
-    // Affiche le tour
     printf("Tour %d\n", jeu->tour);
 
     // Tableau tampon pour chaque case, ici on stocke 4 caractères max (ex: "3Z\0")
-    // Par défaut, on met "." pour indiquer vide.
     char plateau[NB_LIGNES][NB_EMPLACEMENTS][4];
     for(int i=0; i<NB_LIGNES; i++){
         for(int j=0; j<NB_EMPLACEMENTS; j++){
@@ -26,7 +24,7 @@ void AfficherPlateau(Jeu* jeu) {
         int pos = t->position; // 0..NB_EMPLACEMENTS-1
         if(li>=0 && li<NB_LIGNES && pos>=0 && pos<NB_EMPLACEMENTS){
             // Stocke simplement "T"
-            plateau[li][pos][0] = 'T';
+            plateau[li][pos][0] = (char)t->type;
             plateau[li][pos][1] = '\0';
         }
         t = t->next;
