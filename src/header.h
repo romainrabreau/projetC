@@ -98,7 +98,7 @@ const TypeEnnemi* trouverTypeEnnemi(char symbole);
 // 3) Gestion des tourelles
 Tourelle* InitialiserTourelles(int* cagnotte, Erreur* erreur);
 int VerifEntreeLigne(char* ligne_tourelles);
-void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne);
+Tourelle* AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne);
 void LibererTourelles(Tourelle* premier);
 
 const TypeTourelle* trouverTypeTourelle(char symbole);

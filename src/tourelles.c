@@ -1,33 +1,17 @@
 #include "header.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-/*
-  Rappel de la structure TypeTourelle :
-
-  typedef struct {
-      const char symbole;        
-      int pointsDeVie;
-      int degats;
-      int prix;
-      const char* nom;
-  } TypeTourelle;
-*/
 
 // Types de Tourelles (symbole, pointsDeVie, degats, prix, nom)
 const TypeTourelle TYPES_TOURELLES[] = {
     { 'A', 5, 1, 50, "Tableau noir" },
 };
 
-// Recherche dans le tableau des types de tourelles
 const TypeTourelle* trouverTypeTourelle(char symbole) {
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
         if (TYPES_TOURELLES[i].symbole == symbole) {
             return &TYPES_TOURELLES[i];
         }
     }
-    return NULL; // non trouvé
+    return NULL;
 }
 
 /*
@@ -95,7 +79,7 @@ Tourelle* InitialiserTourelles(int *cagnotte, Erreur* erreur) {
 
         // Sinon on ajoute les tourelles à la liste
         *cagnotte -= cout_total;
-        AjouterTourelles(premier, ligne_tourelles, i);
+        premier = AjouterTourelles(premier, ligne_tourelles, i);
         // TODO : si besoin, on peut visualiser la ligne tout de suite
     }
 
@@ -164,8 +148,8 @@ int VerifEntreeLigne(char* ligne_tourelles) {
  *  - Parse de nouveau la ligne (ex: "A 2,B 3") 
  *  - Alloue chaque nouvelle tourelle et l'insère en fin de liste 
  */
-void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
-    if (!ligne_tourelles) return;
+Tourelle* AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
+    if (!ligne_tourelles) return NULL;
 
     char symbole;
     int position;
@@ -181,7 +165,6 @@ void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
     while (sscanf(ptr, " %c %d", &symbole, &position) == 2) {
         const TypeTourelle* type = trouverTypeTourelle(symbole);
         if (!type) {
-            // Erreur inattendue, on stoppe
             break;
         }
 
@@ -190,7 +173,7 @@ void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
         if (!nouvelle) {
             printf("Erreur d'allocation mémoire pour la tourelle.\n");
             LibererTourelles(premier);
-            return;
+            return NULL;
         }
         nouvelle->type = (int)symbole;
         nouvelle->pointsDeVie = type->pointsDeVie;
@@ -221,6 +204,7 @@ void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
             ptr++;
         }
     }
+    return premier;
 }
 
 void supprimerTourelle(Jeu *jeu, Tourelle *t)
