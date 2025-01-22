@@ -97,7 +97,7 @@ Etudiant* InitialiserEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur) {
         // Initialisation des champs
         nouvel->ligne = num_ligne;
         nouvel->tour  = tour;
-        nouvel->position = -1;  // par défaut pas encore sur le plateau
+        nouvel->position = NB_EMPLACEMENTS + 99;  // par défaut pas encore sur le plateau
         nouvel->next = NULL;
         nouvel->next_line = NULL;
         nouvel->prev_line = NULL;
