@@ -1,123 +1,123 @@
-#include "header.h"
+#include "src/header.h"
 
-int main(int argc, char *argv[]) {
-    if (argc!=2) {
-        printf("assurez-vous d'avoir entré exactement un nom de fichier\n");
-        return 1;
+// Initialiser structure de données du jeu
+void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis) {
+    // Vérifications
+    if (erreur->statut_erreur == 1) {
+        return;
     }
-    char *test = strstr(argv[1], ".txt");
-    if (strstr(test, ".txt")==NULL) {
-        printf("assurez-vous d'avoir entré un nom de fichier se terminant par .txt\n");
-        return 1;
+    if (!fichier_ennemis) {
+        erreur->statut_erreur = 1;
+        strcpy(erreur->msg_erreur, "Le fichier n'a pas pu être ouvert\n");
+        return;
     }
-    
-    FILE * fichier_ennemis = fopen(argv[1], "r");
-    if (fichier_ennemis == NULL) {
-        printf("le fichier n'a pas pu être ouvert\n");
-        return 1;
+    if (!jeu) {
+        erreur->statut_erreur = 1;
+        strcpy(erreur->msg_erreur, "Le jeu n'a pas pu être initialisé\n");
+        return;
     }
-    // structure pour conserver le statut et le message d'erreur
-    Erreur erreur;
-    Jeu jeu;
-    InitialiserJeu(&erreur, &jeu, fichier_ennemis);
-    if (erreur.statut_erreur==1) {
-        printf("%s", erreur.msg_erreur);
-        return 1;
-    }
-    return 0;
-}
 
-// Initialiser structure de données du jeu des tourelles et des ennemis
-void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
-    if (erreur->statut_erreur==1) {
-        return;
-    }
-    if (fichier_ennemis == NULL) {
-        erreur->statut_erreur=1;
-        strcpy(erreur->msg_erreur, "le fichier n'a pas pu être ouvert\n");
-        return;
-    }
-    if (jeu == NULL) {
-        erreur->statut_erreur=1;
-        strcpy(erreur->msg_erreur, "le jeu n'a pas pu être initialisé\n");
-        return;
-    }
-    int cagnotte=0;
+    int cagnotte = 0;
     char newline;
-    // vérifier que la première ligne contient uniquement le solde et le changement de ligne
+    // Vérifier que la première ligne contient uniquement la cagnotte et un '\n'
     if (fscanf(fichier_ennemis, "%d%c", &cagnotte, &newline) != 2 || newline != '\n') {
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "format de la cagnotte invalide\n");
+        strcpy(erreur->msg_erreur, "Format de la cagnotte invalide\n");
         return;
     }
-    jeu->cagnotte=cagnotte;
-    // on trie le fichier avec les ennemis et on résouts les doublons
+    // On stocke la cagnotte dans la structure de jeu
+    jeu->cagnotte = cagnotte;
+    /*
+    // On trie le fichier et résout d'éventuels doublons (selon votre logique)
     ResoudreFichier(fichier_ennemis, erreur);
-    if (erreur->statut_erreur==1) {
+    if (erreur->statut_erreur == 1) {
         return;
     }
+    */
+    // Présentation du jeu (affichage d'intro, etc.)
     IntroduireJeu(erreur);
-    Etudiant etudiants[] = InitialisationEnnemis(fichier_ennemis, jeu, &erreur);
-    if (erreur->statut_erreur==1) {
+    if (erreur->statut_erreur == 1) {
         return;
     }
-    // pointe vers le premier ennemi
-    jeu->etudiants=etudiants;
-    //TODO
+
+    // Initialisation des ennemis
+    Etudiant *etudiants = InitialiserEnnemis(fichier_ennemis, jeu, erreur);
+    if (erreur->statut_erreur == 1) {
+        return;
+    }
+    jeu->etudiants = etudiants;
+
+    // Affichage initial des ennemis (optionnel)
     VisualiserEnnemis(jeu->etudiants, erreur);
-    //TOreDO
-    Tourelle tourelles[] = InitialisationTourelles(&jeu->cagnotte, &erreur);
-    if (erreur->statut_erreur==1) {
+    if (erreur->statut_erreur == 1) {
         return;
     }
-    // pointe vers la première tourelle
+
+    // Initialisation des tourelles
+    Tourelle *tourelles = InitialiserTourelles(&jeu->cagnotte, erreur);
+    if (erreur->statut_erreur == 1) {
+        return;
+    }
     jeu->tourelles = tourelles;
-
-
-    return;
 }
 
+// Libère la mémoire (ennemis + tourelles) avant de quitter
 void LibererJeu(Jeu* jeu) {
+    if (!jeu) return;
+
     LibererEnnemis(jeu->etudiants);
     LibererTourelles(jeu->tourelles);
 }
 
-void JouerTour(Jeu* jeu, Erreur* erreur) {
-    while (18) {
-        jeu->tour++;
-
-        printf("Tour %d\n", jeu->tour);
-
-        // FAIT Étape 1 : Entrée des nouveux ennemis
-        ApparitionEnnemis(jeu, erreur);
-        if (erreur->statut_erreur == 1) return;
-
-        // FAIT DEBUT Étape 2 : Résolution des actions des tourelles
-        ResoudreActionsTourelles(jeu, erreur);
-        if (erreur->statut_erreur == 1) return;
-
-        // FAIT MAIS PAS SUR Étape 3 : Résolution des actions des ennemis
-        ResoudreActionsEnnemis(jeu, erreur);
-        if (erreur->statut_erreur == 1) return;
-
-        // FAIT Étape 4 : Déplacement des ennemis
-        DeplacerEnnemis(jeu, erreur);
-        if (erreur->statut_erreur == 1) return;
-
-        // Étape 5 : Vérification des conditions de fin de jeu
-        if (VerifierDefaite(jeu)) {
-            printf("Vous avez perdu ... Les etudiants ont pris le contrôle de l'université.\n");
-            break;
-        }
-
-        if (PartieGagnee(jeu)==1) {
-            printf("Victoire, bien joué. Vous avez défendu l'université contre tous les étudiants.\n");
-            break;
-        }
-        // nettoyer le \n restant
-        while ((getchar()) != '\n');
-        // Pause pour simuler le déroulement du jeu
-        printf("Appuyez sur Entrée pour continuer...\n");
-        getchar();
+int main(int argc, char *argv[]) {
+    printf("\033[0;0H");
+    printf("\033[2J");
+    if (argc != 2) {
+        printf("Assurez-vous d'avoir entré exactement un nom de fichier\n");
+        return 1;
     }
+
+    // Vérifie que le nom de fichier se termine par ".txt"
+    char *pos_ext = strstr(argv[1], ".txt");
+    if (!pos_ext || strcmp(pos_ext, ".txt") != 0) {
+        printf("Assurez-vous d'avoir entré un nom de fichier se terminant par .txt\n");
+        return 1;
+    }
+
+    // Ouvre le fichier
+    FILE *fichier_ennemis = fopen(argv[1], "r");
+    if (!fichier_ennemis) {
+        printf("Le fichier n'a pas pu être ouvert\n");
+        return 1;
+    }
+
+    // Crée la structure pour conserver le statut et le message d'erreur
+    Erreur erreur;
+    erreur.statut_erreur = 0;
+    strcpy(erreur.msg_erreur, "");
+
+    // Crée la structure de jeu
+    Jeu jeu;
+    memset(&jeu, 0, sizeof(Jeu));
+
+    // Initialise le jeu
+    InitialiserJeu(&erreur, &jeu, fichier_ennemis);
+    if (erreur.statut_erreur == 1) {
+        printf("%s", erreur.msg_erreur);
+        fclose(fichier_ennemis);
+        return 1;
+    }
+
+    // On n'a plus besoin du fichier
+    fclose(fichier_ennemis);
+
+    JouerPartie(&jeu, &erreur);
+    if (erreur.statut_erreur == 1) {
+        printf("%s", erreur.msg_erreur);
+    }
+
+    // Libère la mémoire allouée (ennemis, tourelles, etc.)
+    LibererJeu(&jeu);
+
+    return 0;
 }

@@ -27,7 +27,7 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     while (fgets(ligne_fichier, sizeof(ligne_fichier), fichier_ennemis)) {
         int tour, ligne;
         char type;
-        if (sscanf(ligne_fichier, "%d %d %c", &tour, &ligne, &type) != 3) {
+        if (sscanf(ligne_fichier, "%d %d %c", &tour, &ligne, &type) != 3) { // Modif car jsp comment faire pour lancer le fichier sinon
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "format de ligne invalide\n");
             return;
