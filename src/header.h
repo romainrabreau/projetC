@@ -70,19 +70,26 @@ typedef struct {
     int tour;
 } Jeu;
 
+//prototypes de fonctions d'introduction 
+void IntroduireJeu(Erreur* erreur);
+void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur);
 
 // prototypes de fonctions de gestion des ennemis
 const TypeEnnemi* trouverType(char symbole);
-void InitialiserEnnemiType(Etudiant* etudiant, const TypeEnnemi* type);
 Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur);
+void LibererEnnemis(Etudiant* premier);
 
 // protopypes de fonctions de gestion des tourelles
-Tourelle * InitialiserTourelles(int * cagnotte, Erreur* erreur);
+Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur);
 int VerifEntreeLigne(char * ligne_tourelles);
 void LibererTourelles(Tourelle* premier);
-void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne);
+void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne, Erreur* erreur);
 
 // fonctions d'aide
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur);
 
+
+// prototypes de fonctions de jeu
+void JouerPartie(Jeu* jeu, Erreur* erreur);
+void AfficherPlateau(Jeu* jeu);
 #endif

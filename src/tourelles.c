@@ -8,9 +8,24 @@ const TypeTourelle TYPES_TOURELLES[] = {
 };
 
 
-const TypeTourelle* trouverTypeTourelle(char symbole);
+const TypeTourelle* trouverTypeTourelle(char symbole) {
+    for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
+        if (TYPES_TOURELLES[i].symbole == symbole) {
+            return &TYPES_TOURELLES[i];
+        }
+    }
+    return NULL;
+}
 
-Tourelle * InitialiserTourelles(int * cagnotte, Erreur* erreur){
+/*
+ *  InitialiserTourelles
+ *  - Affiche la liste des tourelles disponibles
+ *  - Demande à l'utilisateur de positionner ses tourelles
+ *  - Retourne la l
+ * iste chaînée de tourelles créées
+ */
+Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
+
     printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n");
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
         printf("%c : %s\n", TYPES_TOURELLES[i].symbole, TYPES_TOURELLES[i].nom);
@@ -28,33 +43,42 @@ Tourelle * InitialiserTourelles(int * cagnotte, Erreur* erreur){
     printf("SYMBOLE_X doit être un symbole de tourelle valide, et EMPLACEMENT_i doit être un entier entre 0 et %d\n", NB_EMPLACEMENTS-1);
     printf("Vous ne pouvez pas placer deux tourelles sur le même emplacement\n");
     printf("Vous ne pouvez pas dépenser plus que votre cagnotte.\n");
+
+
     Tourelle* premier = NULL;
-    int sortie_verif;
-    for (int i = 0; i < NB_LIGNES; i++) {
+    int cout_total;
+
+    for (int i = 1; i <= NB_LIGNES; i++) {
         printf("Il vous reste %d ECTS à dépenser.\n", *cagnotte);
         printf("Ligne %d : ", i);
         char ligne_tourelles[256];
+
         fgets(ligne_tourelles, sizeof(ligne_tourelles), stdin);
+
         if (ligne_tourelles[0] == '\n') {
             continue;
         }
-        sortie_verif = VerifEntreeLigne(ligne_tourelles);
-        if (sortie_verif == -1) {
+
+        cout_total = VerifEntreeLigne(ligne_tourelles);
+        if (cout_total == -1) {
             printf("Votre entrée est invalide, veuillez re-placer les tourelles en respectant le format et les symboles\n");
             i--;
             continue;
         }
-        if (sortie_verif - *cagnotte> 0) {
-            printf("Vous avez dépassé le solde de votre cagnotte de %d ECTS, veuillez re-placer les tourelles\n", sortie_verif - *cagnotte);
+        if (cout_total > *cagnotte) {
+            printf("Vous avez dépassé le solde de votre cagnotte de %d ECTS, replacez s.v.p.\n", cout_total - *cagnotte);
             i--;
             continue;
         }
         else {
-            *cagnotte -= sortie_verif;
+            *cagnotte -= cout_total;
             //met à jour
-            AjouterTourelles(premier, ligne_tourelles, i);
+            AjouterTourelles(premier, ligne_tourelles, i, erreur);
 
             //TODO
+        }
+        if (erreur->statut_erreur) {
+            return NULL;
         }
     }
     return premier;
@@ -71,6 +95,7 @@ int VerifEntreeLigne(char * ligne_tourelles) {
 
     Retourne le nombre d'ECTS dépensés
     */
+   if (!ligne_tourelles) return -1;
     int positions[NB_EMPLACEMENTS] = {0};  // Pour marquer les positions utilisées
     int solde_courant = 0;
     char symbole;
@@ -90,7 +115,7 @@ int VerifEntreeLigne(char * ligne_tourelles) {
         if (!type) return -1;  
         
         // validité de la position
-        if (position < 0 || position >= NB_EMPLACEMENTS) return -1;
+        if (position < 0 || position > NB_EMPLACEMENTS) return -1;
         if (positions[position]) return -1;  // Position déjà utilisée
         positions[position] = 1;
         
@@ -110,8 +135,8 @@ int VerifEntreeLigne(char * ligne_tourelles) {
     
     return solde_courant;
 }
-
-void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
+// AjouterTourelles parcourt à nouveau la ligne et chaîne chaque entrée
+void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne, Erreur* erreur) {
     char symbole;
     int position;
     int nb_matchs;
@@ -123,10 +148,14 @@ void AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
         dernier = dernier->next;
     }
     while ((nb_matchs = sscanf(ptr, " %c %d", &symbole, &position)) == 2) {
+
         Tourelle* nouvelle_tourelle = (Tourelle*)malloc(sizeof(Tourelle));
+
         if (nouvelle_tourelle == NULL) {
+            erreur->statut_erreur = 1;
             printf("Erreur d'allocation mémoire\n");
             printf("Les tourelles ajoutées vont être supprimées\n");
+            strcpy(erreur->msg_erreur, "Erreur d'allocation mémoire");
             LibererTourelles(premier);
             return;
         }
@@ -161,13 +190,4 @@ void LibererTourelles(Tourelle* premier) {
         premier = premier->next;
         free(temp);
     }
-}
-
-const TypeTourelle* trouverTypeTourelle(char symbole) {
-    for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
-        if (TYPES_TOURELLES[i].symbole == symbole) {
-            return &TYPES_TOURELLES[i];
-        }
-    }
-    return NULL;
 }

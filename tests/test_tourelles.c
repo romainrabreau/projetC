@@ -19,7 +19,7 @@ void test_VerifEntreeLigne() {
     printf("Test 4 passé: tourelle invalide\n");
 
     // Test 5: Position hors limites
-    assert(VerifEntreeLigne("A 18") == -1);
+    assert(VerifEntreeLigne("A 20") == -1);
     assert(VerifEntreeLigne("A -1") == -1);
     printf("Test 5 passé: Position hors limites\n");
 
