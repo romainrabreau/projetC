@@ -1,9 +1,18 @@
 #include "header.h"
 
 
+/*types à ajouter
+diplôme LSO - L : explose au contante dès que atteinte par un étudiant. détruit immédiatement l'ennemi
+Emanuel Lazard - E : dommage sur trois lignes en mm temps
+BU - B : très résistante, 0 dégats infligés (rmais alenti)
+Feuille de présence - F : immobilise ennemi pendant 2 tours, très cher
+Amphi 4 - A : bloque tous les ennemis de la ligne pendant 1 tour
+eduroam - R : une fois sur deux, l'ennemi recule ou ne bouge pas
+*/
+
 const TypeTourelle TYPES_TOURELLES[] = {
     // symbole, points de vie, prix, nom
-    {'A', 3, 50, "Tableau noir"},      // Type de base
+    {'T', 3, 50, "Tableau noir"},      // Type de base
 
 };
 

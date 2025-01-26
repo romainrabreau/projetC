@@ -1,5 +1,12 @@
 #include "header.h"
 
+/*
+à ajouter : 
+type Insomniaque -  I sa vitesse augmente à chaque tour
+type Syndicaliste - S augmente la vitesse des ennemis adjacents lorsqu'il est touché
+type Fainéant - F fait des sauts aléatoires ou ne bouge pas pendant plusieurs tour, forte résistance
+type Hacker - H pirate les tourelles et les désactive pendant un tour
+*/
 
 const TypeEnnemi TYPES_ENNEMIS[] = {
     // symbole, points de vie, vitesse, nom
@@ -8,6 +15,7 @@ const TypeEnnemi TYPES_ENNEMIS[] = {
     {'L', 8, 1, "Etudiant L1"},         // plus résistant mais même vitesse
     {'A', 0, 0, "Alternant"}, // un vilain qui change de ligne une fois dans la partie en sautant aléatoirement sur une des deux lignes adjacentes ;
 };
+
 
 // retourne le type d'ennemi correspondant au symbole
 const TypeEnnemi* trouverTypeEnnemi(char symbole) {
