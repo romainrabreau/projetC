@@ -20,7 +20,7 @@ const TypeEnnemi* trouverTypeEnnemi(char symbole) {
 }
 
 // vérifie que le type est dans les types autorisés
-TypeEnnemi* VerifType(int *tour, int *ligne, char *symbole, Erreur *erreur) {
+const TypeEnnemi* VerifType(int *tour, int *ligne, char *symbole, Erreur *erreur) {
     const TypeEnnemi* type_ennemi = trouverTypeEnnemi(*symbole);
     if (type_ennemi == NULL) {
         erreur->statut_erreur = 1;
@@ -62,7 +62,7 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
             return NULL;
         }
 
-        // nouvel étudiant ennemi
+        // espace mémoire alloué pour l'étudiant
         Etudiant* nouvel_etudiant = (Etudiant*)malloc(sizeof(Etudiant));
         if (nouvel_etudiant == NULL) {
             erreur->statut_erreur = 1;
@@ -71,7 +71,6 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
             return NULL;
         }
 
-        // Initialisation des champs
         // num_ligne commence à 1
         nouvel_etudiant->ligne = num_ligne;
         nouvel_etudiant->tour = tour;
@@ -94,12 +93,11 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         dernier = nouvel_etudiant;
 
         // chaînage par ligne
-        int indice_ligne = num_ligne - 1;
         if (lignes_ennemis[num_ligne - 1] == NULL) {
             lignes_ennemis[num_ligne - 1] = nouvel_etudiant;
         } else {
-            lignes_ennemis[num_ligne - 1]->next_line = nouvel_etudiant;
             nouvel_etudiant->prev_line = lignes_ennemis[num_ligne - 1];
+            lignes_ennemis[num_ligne - 1]->next_line = nouvel_etudiant;
             // on met à jour la référence au dernier ennemi de la ligne de jeu
             lignes_ennemis[num_ligne - 1] = nouvel_etudiant;
         }
@@ -117,4 +115,38 @@ void LibererEnnemis(Etudiant* premier) {
         premier = premier->next;
         free(courant);
     }
+}
+
+void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
+    if (!ennemi || !jeu) {
+        erreur->statut_erreur=1;
+        strcpy(erreur->msg_erreur, "Erreur d'accès à l'ennemi ou au jeu\n");
+    }
+
+    // chainage
+    if (ennemi == jeu->etudiants) {
+        // premier de la liste
+        jeu->etudiants = ennemi->next;
+    } else {
+        // on trouve l'ennemi précédent
+        Etudiant* prec = jeu->etudiants;
+        while (prec && prec->next != ennemi) {
+            prec = prec->next;
+        }
+        if (!prec) {
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "Impossible de supprimer l'ennemi : ennemi introuvable\n");
+            return;
+        }
+        prec->next = ennemi->next;
+    }
+
+    // chaînage par ligne
+    if (ennemi->prev_line) {
+        ennemi->prev_line->next_line = ennemi->next_line;
+    }
+    if (ennemi->next_line) {
+        ennemi->next_line->prev_line = ennemi->prev_line;
+    }
+    free(ennemi);
 }

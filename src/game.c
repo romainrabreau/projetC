@@ -25,18 +25,21 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "pas d'ennemis à attaquer");
         }
-        while (!(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position <= NB_EMPLACEMENTS && e->position > t->position)) {
+        while (e != NULL && !(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position <= NB_EMPLACEMENTS && e->position > t->position)) {
             // si l'ennemi est mort, ou derrière la tourelle, ounsurune ligne différente
                 e = e->next;
         }
         if (e == NULL) {
+            t = t->next;
             // pas d'ennemis à attaquer pour cette tourelle
             continue;
         }
         if ((char)t->type == 'A') {
             // tourelle de type basique
-            e->pointsDeVie -= 2;
-            printf("Tourelle de type basique a attaqué un étudiant sur la ligne %d à l'emplacement %d\n", e->ligne, e->position);
+            e->pointsDeVie -= 1;
+        }
+        if (e->pointsDeVie<=0) {
+            SupprimerEnnemi(jeu, erreur, e);
         }
         //TODO si tourelles spéciales implémenter
         t = t->next;
@@ -47,7 +50,7 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
 void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
     Etudiant* e = jeu->etudiants;
     while (e != NULL) {
-        if (e->pointsDeVie <= 0 || e->position<0) {
+        if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS) {
             e = e->next;
             continue;
         }
@@ -56,7 +59,7 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
             return;
         }
         // on trouve la tourelle que va attaquer l'ennemi, pour les ennemis qui attaquent celle devant eux
-        while (!(t->ligne == e->ligne && t->pointsDeVie > 0 && e->position == t->position + 1)) {
+        while (t != NULL && !(t->ligne == e->ligne && t->pointsDeVie > 0 && e->position == t->position + 1)) {
             // si la tourelle est morte, ou pas direct devant l'ennemi, ou sur une ligne différente
             t = t->next;
         }
@@ -64,12 +67,9 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
             e = e->next;
             continue; 
         }
-        //TODO si ennemis spéciaux ajoutés, sinon aucun dégât de leur part
-        printf("Action de l'ennemi de type %c sur la ligne %d à la position %d\n", (char)e->type, e->ligne, e->position);
         if ((char)e->type == 'Z') {
             // étudiant basique
             t->pointsDeVie -= 1;
-            printf("étudian Z a attaqué une tourelle sur la ligne %d à l'emplacement %d\n", t->ligne, t->position);
         }
         e = e->next;
     }
@@ -82,11 +82,12 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
     Etudiant* e = jeu->etudiants;
     while (e) {
         // si l'ennemi est mort
-        if (e->pointsDeVie <= 0) {
+        if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS) {
             e = e->next;
             continue;
         }
         int deplacement = e->vitesse;
+        // vérification ennemi devant
         if (e->prev_line != NULL){
             // plus on est loin, plus la position est grande
             int diff = (e->position + e->vitesse) - e->prev_line->position ;
@@ -99,7 +100,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         Tourelle* t = jeu->tourelles;
         while (t) {
             // vérifie si la tourelle est sur la même ligne, si elle est vivante, si elle est devant l'ennemi et si elle est sur la trajectoire
-            if (t->ligne == e->ligne && t->pointsDeVie > 0 && t->position < e->position && t->position > e->position + deplacement) {
+            if (t->ligne == e->ligne && t->pointsDeVie > 0 && t->position < e->position && t->position >= e->position - deplacement) {
                 int deplacement_possible = e->position - t->position - 1;
                 if (deplacement_possible < deplacement) {
                     // on garde le pire cas
@@ -108,7 +109,6 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
             }
             t = t->next;
         }
-        printf("Déplacement de l'ennemi de type %c sur la ligne %d de %d cases \n", (char)e->type, e->ligne, deplacement);
         e->position -= deplacement;
         e = e->next;
     }
@@ -136,9 +136,12 @@ int PartieGagnee(Jeu* jeu) {
 }
 
 void JouerPartie(Jeu* jeu, Erreur* err) {
-    while(18) {
+    while(255) {
         jeu->tour++;
-        printf("Tour %d\n", jeu->tour);
+
+        AfficherPlateau(jeu);
+        printf("Appuyez sur Entrée pour continuer...\n");
+        while ((getchar()) != '\n');
 
         ApparitionEnnemis(jeu, err);
         if(err->statut_erreur) return;
@@ -161,11 +164,9 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
             printf("Bravo, vous avez défendu l'université !\n");
             break;
         }
-
-        AfficherPlateau(jeu);
-
-        while ((getchar()) != '\n');
+        
+        printf("Fin du tour %d\n", jeu->tour);
         printf("Appuyez sur Entrée pour continuer...\n");
-        getchar();
+        while ((getchar()) != '\n');
     }
 }

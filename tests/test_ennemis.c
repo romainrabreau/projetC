@@ -54,4 +54,10 @@ void test_EnnemiInvalid() {
 
     fclose(fichier_test);
     remove(nom_fichier_test);
+    printf("Test passés pour InitialisationEnnemis avec un fichier test");
+}
+
+int main() {
+    test_EnnemiInvalid();
+    return 0;
 }

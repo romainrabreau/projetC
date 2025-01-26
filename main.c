@@ -2,12 +2,17 @@
 
 
 
-// Initialiser structure de données du jeu des tourelles et des ennemis
+// Initialiser structures de données du jeu des tourelles et des ennemis
 void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     if (erreur->statut_erreur==1) {
         return;
     }
-    printf("Initialisation du jeu\n");
+
+    IntroduireJeu(erreur);
+    if (erreur->statut_erreur==1) {
+        return;
+    }
+    animer_attente(2000, "Initialisation du jeu en cours ...");
     if (fichier_ennemis == NULL) {
         erreur->statut_erreur=1;
         strcpy(erreur->msg_erreur, "le fichier n'a pas pu être ouvert\n");
@@ -33,12 +38,9 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     if (erreur->statut_erreur==1) {
         return;
     }
+    printf("Initialisation des ennemis en cours ...\n");
+    printf("\033[36;47mInitialisation des ennemis en cours ..."RESET"\n");
 
-    IntroduireJeu(erreur);
-    if (erreur->statut_erreur==1) {
-        return;
-    }
-    printf("initialisation des ennemis\n");
     Etudiant * etudiants = InitialisationEnnemis(fichier_ennemis, jeu, erreur);
     if (erreur->statut_erreur==1) {
         return;
@@ -50,8 +52,8 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     if (erreur->statut_erreur==1) {
         return;
     }
+    printf("\033[36;47mInitialisation des tourelles en cours ..."RESET"\n");
 
-    printf("initialisation des tourelles\n");
     Tourelle * tourelles = InitialisationTourelles(&jeu->cagnotte, erreur);
     if (erreur->statut_erreur==1) {
         return;
@@ -95,6 +97,7 @@ int main(int argc, char *argv[]) {
     if (erreur.statut_erreur==1) {
         fclose(fichier_ennemis);
         printf("%s", erreur.msg_erreur);
+        LibererJeu(&jeu);
         return 1;
     }
     fclose(fichier_ennemis);

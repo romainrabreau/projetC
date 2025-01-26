@@ -4,7 +4,7 @@ void AfficherPlateau(Jeu* jeu) {
     printf("\033[0;0H");
     printf("\033[2J");
 
-    printf("Tour %d\n", jeu->tour);
+    printf("Début du tour %d\n", jeu->tour);
 
     // Tableau tampon pour chaque case, ici on stocke 4 caractères max (ex: "3Z\0")
     char plateau[NB_LIGNES][NB_EMPLACEMENTS][4];
@@ -15,14 +15,12 @@ void AfficherPlateau(Jeu* jeu) {
         }
     }
 
-    // Place les tourelles (“T”)
     // (On suppose qu’une case ne contient qu’une tourelle ou un ennemi
-    //  si le jeu permet plusieurs occupants, il faudra gérer autrement)
     Tourelle* t = jeu->tourelles;
     while(t){
-        int li = t->ligne;     // de 0 à NB_LIGNES-1
-        int pos = t->position; // 0..NB_EMPLACEMENTS-1
-        if(li>=0 && li<NB_LIGNES && pos>=0 && pos<NB_EMPLACEMENTS){
+        int li = t->ligne-1;     // de 0 à NB_LIGNES-1
+        int pos = t->position-1; // 0..NB_EMPLACEMENTS-1
+        if(li>=0 && li<NB_LIGNES && pos>=0 && pos<NB_EMPLACEMENTS && t->pointsDeVie>0){
             // Stocke simplement "T"
             plateau[li][pos][0] = (char)t->type;
             plateau[li][pos][1] = '\0';
@@ -35,7 +33,7 @@ void AfficherPlateau(Jeu* jeu) {
     while(e){
         // Dans cet exemple, on suppose e->ligne varie de 1..7, on fait -1 pour index
         int li = e->ligne - 1; 
-        int pos = e->position;
+        int pos = e->position-1;
         if(li>=0 && li<NB_LIGNES && pos>=0 && pos<NB_EMPLACEMENTS && e->pointsDeVie>0){
             // On formate “PVType”, ex: “3Z”
             //  On se limite à 3 caractères max (“3Z\0”)

@@ -2,51 +2,37 @@
 #include "header.h"
 
 void test_VerifEntreeLigne() {
-    // Test 1: Entrée valide simple
-    assert(VerifEntreeLigne("A 0") == 50);
-    printf("Test 1 passé: Entrée valide simple\n");
+    Erreur erreur;
+    erreur.statut_erreur = 0;
+    assert(VerifEntreeLigne("A 3\n", &erreur) == 50);
 
-    // Test 2: Plusieurs tourelles valides
-    assert(VerifEntreeLigne("A 0, A 1") == 100);
-    printf("Test 2 passé: Plusieurs tourelles valides\n");
+    assert(VerifEntreeLigne("A 7, A 1\n", &erreur) == 100);
 
-    // Test 3: Espaces supplémentaires
-    assert(VerifEntreeLigne("    A    0   ,    A    1    ") == 100);
-    printf("Test 3 passé: Espaces supplémentaires\n");
+    assert(VerifEntreeLigne("    A 12   ,    A 1   \n", &erreur) == 100);
 
-    // Test 4: Symbole invalide
-    assert(VerifEntreeLigne("B 0") == -1);
-    printf("Test 4 passé: tourelle invalide\n");
+    assert(VerifEntreeLigne("B 3", &erreur) == -1);
 
-    // Test 5: Position hors limites
-    assert(VerifEntreeLigne("A 20") == -1);
-    assert(VerifEntreeLigne("A -1") == -1);
-    printf("Test 5 passé: Position hors limites\n");
+    // Position hors limites
+    assert(VerifEntreeLigne("A 20", &erreur) == -1);
+    assert(VerifEntreeLigne("A 0", &erreur) == -1);
 
-    // Test 6: Position en double
-    assert(VerifEntreeLigne("A 0, A 0") == -1);
-    printf("Test 6 passé: Position en double\n");
+    // Positions en double
+    assert(VerifEntreeLigne("A 4, A 4", &erreur) == -1);
 
-    // Test 7: Format invalide
-    assert(VerifEntreeLigne("A") == -1);
-    assert(VerifEntreeLigne("A,0") == -1);
-    assert(VerifEntreeLigne("A A 0") == -1);
-    assert(VerifEntreeLigne(" 0 A") == -1);
-    assert(VerifEntreeLigne(",") == -1);
-    assert(VerifEntreeLigne(",,") == -1);
-    printf("Test 7 passé: Format invalide\n");
+    assert(VerifEntreeLigne("A", &erreur) == -1);
+    assert(VerifEntreeLigne("A,3", &erreur) == -1);
+    assert(VerifEntreeLigne("A A9", &erreur) == -1);
+    assert(VerifEntreeLigne("A10", &erreur) == -1);
+    assert(VerifEntreeLigne(",A", &erreur) == -1);
+    assert(VerifEntreeLigne(",,", &erreur) == -1);
 
-    // Test 8: Virgules superflues
-    assert(VerifEntreeLigne("A 0,") == 50);
-    assert(VerifEntreeLigne("A 0,,A 1") == -1);
-    printf("Test 8 passé: Virgules superflues\n");
+    assert(VerifEntreeLigne("A 10,", &erreur) == 50);
+    assert(VerifEntreeLigne("A 9,,A 1", &erreur) == -1);
 
-    // Test 9: Caractères non-numériques pour la position
-    assert(VerifEntreeLigne("A a") == -1);
-    assert(VerifEntreeLigne("A #") == -1);
-    printf("Test 9 passé: Caractères non-numériques\n");
+    // caractères invalides
+    assert(VerifEntreeLigne("A m", &erreur) == -1);
 
-    printf("Tous les tests ont passé avec succès!\n");
+    printf("VerifEntreeLigne a été testée\n");
 }
 
 int main() {
