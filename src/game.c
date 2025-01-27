@@ -99,18 +99,33 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
             e = e->next;
             continue;
         }
+
+        // Affectation de la vitesse  par les tourelles
+        Tourelle* t1 = jeu->tourelles;
         int deplacement = e->vitesse;
+        while (t1) {
+            if (t1->ligne == e->ligne 
+            && t1->pointsDeVie > 0 
+            && t1->position < e->position
+            && e->prev_line == NULL) {
+                if ((char)t1->type == 'R') {
+                    deplacement = 1;
+                }
+            }
+            t1 = t1->next;
+        }
         // vérification ennemi devant
         if (e->prev_line != NULL){
             // plus on est loin, plus la position est grande
-            int diff = (e->position + e->vitesse) - e->prev_line->position ;
+            int diff = (e->position - deplacement) - e->prev_line->position ;
             // si l'ennemi est trop proche de celui de devant
             if (diff <= 0 ){
                 deplacement = e->position - (e->prev_line->position + 1);
             }
         }
-        // on doit vérifier si une tourelle ne bloque pas le passage
+
         Tourelle* t = jeu->tourelles;
+        // on doit vérifier si une tourelle ne bloque pas le passage
         while (t) {
             // vérifie si la tourelle est sur la même ligne, si elle est vivante, si elle est devant l'ennemi et si elle est sur la trajectoire
             if (t->ligne == e->ligne && t->pointsDeVie > 0 && t->position < e->position && t->position >= e->position - deplacement) {

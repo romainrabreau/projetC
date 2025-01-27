@@ -1,7 +1,7 @@
 #include "header.h"
 
 /*types à ajouter
-diplôme LSO - L : explose au contante dès que atteinte par un étudiant. détruit immédiatement l'ennemi
+diplôme LSO - L : explose au contacte dès que atteinte par un étudiant. détruit immédiatement l'ennemi
 Emanuel Lazard - E : dommage sur trois lignes en mm temps
 BU - B : très résistante, 0 dégats infligés (rmais alenti)
 Feuille de présence - F : immobilise ennemi pendant 2 tours, très cher
@@ -11,12 +11,11 @@ eduroam - R : une fois sur deux, l'ennemi recule ou ne bouge pas
 
 const TypeTourelle TYPES_TOURELLES[] = {
     // symbole, points de vie, prix, nom
-    {'A', 3, 50, "Amphi 4"},                    // Tourelle de base
-    {'L', 1, 100, "Diplôme LSO"},               // Explose au contact, détruit l'ennemi
-    {'E', 5, 200, "Emanuel Lazard"},            // Dégâts sur trois lignes simultanément
-    {'B', 10, 150, "BU"},                       // Très résistante, ralentit les ennemis
-    {'F', 2, 300, "Feuille de Présence"},       // Immobilise les ennemis pendant 2 tours
-    {'R', 4, 120, "Eduroam"},                   // Une fois sur deux, l'ennemi recule ou ne bouge pas
+    {'T', 3, 50, "Table"},                    // Tourelle de base
+    {'R', 2, 75, "Eduroam"},                  // Ralentit tout étudiant qui s'aventure sur sa ligne
+    {'L', 1, 25, "Diplôme LSO"},              // Explose au contact, détruit l'ennemi
+    {'E', 3, 150, "Emmanuel Lazard"},         // Dégâts sur trois lignes simultanément
+    {'B', 10, 50, "BU"},                      // Très résistante, fais office de mur
 };
 
 const TypeTourelle* trouverTypeTourelle(char symbole) {
@@ -44,7 +43,7 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
         printf("Prix : %d\n", TYPES_TOURELLES[i].prix);
     }
     printf("\n");
-    //TODO si on ajoute des tourelles spéciales
+        //TODO si on ajoute des tourelles spéciales
     printf("Certaines tourelles ont des caractéristiques spéciales, notamment : \n\n");
     
     printf("Il vous faut maintenant placer les tourellles de défense sur les emplacements de votre choix.\n");
@@ -59,7 +58,6 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
     printf("Sinon, faites entrée pour passer à la ligne suivante\n\n");
     printf("Vous ne pouvez pas placer deux tourelles sur le même emplacement\n\n");
     printf("Vous ne pouvez pas dépenser plus que votre cagnotte.\n");
-
 
     Tourelle* premier = NULL;
     Tourelle* dernier = NULL;
@@ -101,7 +99,7 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
             else {
                 dernier = AjouterTourelles(premier, dernier, ligne_tourelles, i, erreur);
             }
-
+            
             //TODO
         }
         if (erreur->statut_erreur) {

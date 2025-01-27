@@ -10,10 +10,10 @@ type Hacker - H pirate les tourelles et les désactive pendant un tour
 
 const TypeEnnemi TYPES_ENNEMIS[] = {
     // symbole, points de vie, vitesse, nom
-    {'Z', 5, 1, "Etudiant"},      // type de base
+    {'Z', 5, 2, "Etudiant"},      // type de base
     {'T', 3, 2, "Etudiant Talent"},      // plus rapide mais moins résistant
     {'L', 8, 1, "Etudiant L1"},         // plus résistant mais même vitesse
-    {'A', 0, 0, "Alternant"}, // un vilain qui change de ligne une fois dans la partie en sautant aléatoirement sur une des deux lignes adjacentes ;
+    {'A', 4, 1, "Alternant"}, // un vilain qui change de ligne une fois dans la partie en sautant aléatoirement sur une des deux lignes adjacentes ;
 };
 
 
