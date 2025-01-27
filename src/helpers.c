@@ -27,7 +27,7 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     while (fgets(ligne_fichier, sizeof(ligne_fichier), fichier_ennemis)) {
         int tour, ligne;
         char type;
-        if (sscanf(ligne_fichier, "%d %d %c", &tour, &ligne, &type) != 3) { // Modif car jsp comment faire pour lancer le fichier sinon
+        if (sscanf(ligne_fichier, "%d %d %c", &tour, &ligne, &type) != 3) {
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "format de ligne invalide\n");
             return;
@@ -53,7 +53,6 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     int tour_courant = ennemis[0].tour;
     Etudiant bouges[NB_EMPLACEMENTS]; // tableau pour stocker les ennemis relégués
     int nb_bouges = 0;
-    int diff = 0;
 
     // gestion des doublons + écriture du nouveau fichier
     fprintf(fichier_ennemis, "%d %d %c\n", ennemis[0].tour, ennemis[0].ligne, ennemis[0].type);
@@ -82,4 +81,9 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     }
     // remet le curseur au début du fichier
     rewind(fichier_ennemis);
+}
+
+
+void Attendre(int ms) {
+    usleep(ms * 1000);  // Pause en millisecondes
 }

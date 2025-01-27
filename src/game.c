@@ -1,14 +1,14 @@
 #include "header.h"
 
-void ApparitionEnnemis(Jeu* jeu, Erreur* err) {
-    (void)err;
+void ApparitionEnnemis(Jeu* jeu, Erreur* erreur) {
     Etudiant* e = jeu->etudiants;
-    while(e) {
-        if(e->tour == jeu->tour && e->position >= NB_EMPLACEMENTS) {
-            e->position = NB_EMPLACEMENTS; 
+    while (e != NULL) {
+        if (e->tour == jeu->tour) {
+            e->position = NB_EMPLACEMENTS + 1; // Départ hors plateau pour attaquer les tourelles juste devant
         }
         e = e->next;
     }
+    return;
 }
 
 void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
@@ -25,112 +25,125 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "pas d'ennemis à attaquer");
         }
-        while (!(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position > t->position)) {
-            // si l'ennemi est mort, ou derrière la tourelle, ou sur une ligne différente
+        while (e != NULL && !(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position <= NB_EMPLACEMENTS && e->position > t->position)) {
+            // si l'ennemi est mort, ou derrière la tourelle, ounsurune ligne différente
                 e = e->next;
         }
         if (e == NULL) {
+            t = t->next;
             // pas d'ennemis à attaquer pour cette tourelle
             continue;
         }
         if ((char)t->type == 'A') {
-            // To Do adapter en fonction du type les dégats.
+            // tourelle de type basique
             e->pointsDeVie -= 1;
+        }
+        if (e->pointsDeVie<=0) {
+            SupprimerEnnemi(jeu, erreur, e);
         }
         //TODO si tourelles spéciales implémenter
         t = t->next;
     }
     return;
 }
-void ResoudreActionsEnnemis(Jeu* jeu, Erreur* err) {
-    (void)err;
-    Tourelle* t = jeu->tourelles;
-    while(t) {
-        Tourelle* t_next = t->next;
-        if(t->pointsDeVie <= 0) {
-            t = t_next;
-            continue;
-        }
-        // Les ennemis sur la même ligne qui se trouvent juste devant la tourelle (pos = tourelle->pos - 1) attaquent
-        Etudiant* e = jeu->etudiants;
-        while(e) {
-            Etudiant* e_next = e->next;
-            if(e->ligne == t->ligne && e->position == t->position - 1 && e->pointsDeVie > 0) {
-                const TypeEnnemi* eType = trouverTypeEnnemi((char)e->type);
-                if(eType) {
-                    t->pointsDeVie -= eType->degats;
-                    if(t->pointsDeVie <= 0) {
-                        supprimerTourelle(jeu, t);
-                        break;
-                    }
-                }
-            }
-            e = e_next;
-        }
-        t = t_next;
-    }
-}
 
-// Déplacement des ennemis
-void DeplacerEnnemis(Jeu* jeu, Erreur* err) {
-    (void)err;
+void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
     Etudiant* e = jeu->etudiants;
-    while(e) {
-        const TypeEnnemi* eType = trouverTypeEnnemi((char)e->type);
-        if(!eType) {
+    while (e != NULL) {
+        if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS + 1) { // Prendre en compte les étudiants qui viennent de rentrer.
             e = e->next;
             continue;
         }
-        int vitesse = eType->vitesse;
-        int newPos = e->position - vitesse;
-        if(newPos < 0) {
-            newPos = -1;
-        }
-        // Vérifie si une tourelle occupe newPos
-        int blocked = 0;
         Tourelle* t = jeu->tourelles;
-        while(t) {
-            if(t->ligne == e->ligne && t->pointsDeVie > 0 && t->position == newPos) {
-                blocked = 1;
-                break;
+        if (t == NULL) {
+            return;
+        }
+        // on trouve la tourelle que va attaquer l'ennemi, pour les ennemis qui attaquent celle devant eux
+        while (t != NULL && !(t->ligne == e->ligne && t->pointsDeVie > 0 && e->position == t->position + 1)) {
+            // si la tourelle est morte, ou pas direct devant l'ennemi, ou sur une ligne différente
+            t = t->next;
+        }
+        if (t == NULL) {
+            e = e->next;
+            continue; 
+        }
+        if ((char)e->type == 'Z') {
+            t->pointsDeVie -= 1;
+        }
+        e = e->next;
+    }
+    return;
+}
+
+
+void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
+    // déplace les ennemis en fonction de leur vitesse, prend en compte les collisions
+    Etudiant* e = jeu->etudiants;
+    while (e) {
+        // si l'ennemi est mort ou pas encore sur le plateau
+        if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS + 1) {
+            e = e->next;
+            continue;
+        }
+        int deplacement = e->vitesse;
+        // vérification ennemi devant
+        if (e->prev_line != NULL){
+            // plus on est loin, plus la position est grande
+            int diff = (e->position + e->vitesse) - e->prev_line->position ;
+            // si l'ennemi est trop proche de celui de devant
+            if (diff <= 0 ){
+                deplacement = e->position - (e->prev_line->position + 1);
+            }
+        }
+        // on doit vérifier si une tourelle ne bloque pas le passage
+        Tourelle* t = jeu->tourelles;
+        while (t) {
+            // vérifie si la tourelle est sur la même ligne, si elle est vivante, si elle est devant l'ennemi et si elle est sur la trajectoire
+            if (t->ligne == e->ligne && t->pointsDeVie > 0 && t->position < e->position && t->position >= e->position - deplacement) {
+                int deplacement_possible = e->position - t->position - 1;
+                if (deplacement_possible < deplacement) {
+                    // on garde le pire cas
+                    deplacement = deplacement_possible;
+                }
             }
             t = t->next;
         }
-        if(!blocked) {
-            e->position = newPos;
-        }
+        e->position -= deplacement;
         e = e->next;
     }
 }
 
-// Vérifier défaite : si un ennemi atteint position < 0
-int VerifierDefaite(Jeu* jeu) {
+int PartiePerdue(Jeu* jeu) {
     Etudiant* e = jeu->etudiants;
-    while(e) {
-        if(e->position < 0) return 1;
+    while (e) {
+        // si l'ennemi a atteint le bout de la ligne
+        if(e->position <= 0) return 1;
         e = e->next;
     }
     return 0;
 }
 
-// Vérifier victoire : si tous les ennemis sont morts
-int VerifierVictoire(Jeu* jeu) {
+int PartieGagnee(Jeu* jeu) {
     Etudiant* e = jeu->etudiants;
-    while(e) {
-        if(e->pointsDeVie > 0) return 0; 
+    while (e) {
+        if (e->pointsDeVie > 0) {
+            return 0; // il reste un enneli en vie
+        }
         e = e->next;
     }
-    return 1;
+    return 1; // victoire
 }
 
-// La boucle de jeu
 void JouerPartie(Jeu* jeu, Erreur* err) {
-    while(1) {
+    while(255) {
         jeu->tour++;
-        printf("Tour %d\n", jeu->tour);
 
         ApparitionEnnemis(jeu, err);
         if(err->statut_erreur) return;
+
+        AfficherPlateau(jeu);
+        printf("Appuyez sur Entrée pour continuer...\n");
+        while ((getchar()) != '\n');
 
         ResoudreActionsTourelles(jeu, err);
         if(err->statut_erreur) return;
@@ -141,19 +154,18 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
         DeplacerEnnemis(jeu, err);
         if(err->statut_erreur) return;
 
-        if(VerifierDefaite(jeu)) {
+        if(PartiePerdue(jeu)) {
             printf("Vous avez perdu... Les étudiants ont pris l'université.\n");
             break;
         }
 
-        if(VerifierVictoire(jeu)) {
+        if(PartieGagnee(jeu)) {
             printf("Bravo, vous avez défendu l'université !\n");
             break;
         }
-
-        AfficherPlateau(jeu);
-
+        
+        printf("Fin du tour %d\n", jeu->tour);
         printf("Appuyez sur Entrée pour continuer...\n");
-        while(getchar() != '\n');
+        while ((getchar()) != '\n');
     }
 }

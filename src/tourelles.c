@@ -1,9 +1,21 @@
 #include "header.h"
 
-// Types de Tourelles (symbole, pointsDeVie, degats, prix, nom)
+/*types à ajouter
+diplôme LSO - L : explose au contante dès que atteinte par un étudiant. détruit immédiatement l'ennemi
+Emanuel Lazard - E : dommage sur trois lignes en mm temps
+BU - B : très résistante, 0 dégats infligés (rmais alenti)
+Feuille de présence - F : immobilise ennemi pendant 2 tours, très cher
+Amphi 4 - A : bloque tous les ennemis de la ligne pendant 1 tour
+eduroam - R : une fois sur deux, l'ennemi recule ou ne bouge pas
+*/
+
+
 const TypeTourelle TYPES_TOURELLES[] = {
-    { 'A', 5, 1, 50, "Tableau noir" },
+    // symbole, points de vie, prix, nom
+    {'A', 3, 50, "Tableau noir"},      // Type de base
+
 };
+
 
 const TypeTourelle* trouverTypeTourelle(char symbole) {
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
@@ -18,199 +30,219 @@ const TypeTourelle* trouverTypeTourelle(char symbole) {
  *  InitialiserTourelles
  *  - Affiche la liste des tourelles disponibles
  *  - Demande à l'utilisateur de positionner ses tourelles
- *  - Retourne la liste chaînée de tourelles créées
+ *  - Retourne la l
+ * iste chaînée de tourelles créées
  */
-Tourelle* InitialiserTourelles(int *cagnotte, Erreur* erreur) {
-    if (!cagnotte || !erreur) {
-        fprintf(stderr, "Paramètres invalides à InitialiserTourelles.\n");
-        return NULL;
-    }
+Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
 
-    printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n");
+    printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n\n");
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
         printf("%c : %s\n", TYPES_TOURELLES[i].symbole, TYPES_TOURELLES[i].nom);
-        printf("Points de vie : %d\n",   TYPES_TOURELLES[i].pointsDeVie);
-        printf("Dégâts : %d\n",         TYPES_TOURELLES[i].degats);
-        printf("Prix : %d\n\n",         TYPES_TOURELLES[i].prix);
+        printf("Points de vie : %d\n", TYPES_TOURELLES[i].pointsDeVie);
+        printf("Prix : %d\n", TYPES_TOURELLES[i].prix);
     }
+    printf("\n");
+    //TODO si on ajoute des tourelles spéciales
+    printf("Certaines tourelles ont des caractéristiques spéciales, notamment : \n\n");
+    
+    printf("Il vous faut maintenant placer les tourellles de défense sur les emplacements de votre choix.\n");
+    printf("Vous avez à défendre %d lignes, avec %d positions par ligne \n\n", NB_LIGNES, NB_EMPLACEMENTS);
 
-    printf("Certaines tourelles peuvent avoir des caractéristiques spéciales...\n\n");
+    printf("Si vous souhaitez placer des tourelles sur la ligne proposée, entrez [SYMBOLE_X] [EMPLACEMENT_1], [SYMBOLE_Y] [EMPLACEMENT_2], ...\n");
 
-    printf("Vous avez %d ECTS pour défendre %d lignes,\n", *cagnotte, NB_LIGNES);
-    printf("avec %d emplacements par ligne.\n", NB_EMPLACEMENTS);
-    printf("Pour placer des tourelles, entrez :\n");
-    printf("   [SYMBOLE_X] [EMPLACEMENT_1], [SYMBOLE_Y] [EMPLACEMENT_2], ...\n");
-    printf("Ou appuyez sur Entrée pour passer à la ligne suivante.\n");
-    printf("(SYMBOLE_X doit être un symbole de tourelle valide.\n");
-    printf(" EMPLACEMENT_i doit être un entier [0..%d].)\n\n", NB_EMPLACEMENTS - 1);
+    printf("SYMBOLE_X doit être un symbole de tourelle valide, et EMPLACEMENT_i doit être un entier entre 1 et %d\n", NB_EMPLACEMENTS);
+
+    printf("Par exemple : A 3, A 5, A 12\n\n");
+
+    printf("Sinon, faites entrée pour passer à la ligne suivante\n\n");
+    printf("Vous ne pouvez pas placer deux tourelles sur le même emplacement\n\n");
+    printf("Vous ne pouvez pas dépenser plus que votre cagnotte.\n");
+
 
     Tourelle* premier = NULL;
+    Tourelle* dernier = NULL;
+    int cout_total;
 
     for (int i = 1; i <= NB_LIGNES; i++) {
-        printf("Il vous reste %d ECTS.\n", *cagnotte);
+        printf("\n\n");
+        printf("Il vous reste %d ECTS à dépenser.\n", *cagnotte);
         printf("Ligne %d : ", i);
-
         char ligne_tourelles[256];
-        if (!fgets(ligne_tourelles, sizeof(ligne_tourelles), stdin)) {
-            break;
-        }
+
+        fgets(ligne_tourelles, sizeof(ligne_tourelles), stdin);
+
         if (ligne_tourelles[0] == '\n') {
             continue;
         }
 
-        int cout_total = VerifEntreeLigne(ligne_tourelles);
+        cout_total = VerifEntreeLigne(ligne_tourelles, erreur);
         if (cout_total == -1) {
-            printf("Entrée invalide. Veuillez re-placer les tourelles.\n\n");
+            printf("%s", erreur->msg_erreur);
+            erreur->statut_erreur=0;
+            printf("Veuillez re-placer les tourelles en respectant le format et les symboles\n");
             i--;
             continue;
         }
-
         if (cout_total > *cagnotte) {
-            printf("Vous dépassez votre cagnotte de %d ECTS, re-placer s.v.p.\n\n",
-                   cout_total - *cagnotte);
+            printf("Vous avez dépassé le solde de votre cagnotte de %d ECTS, replacez s.v.p.\n", cout_total - *cagnotte);
             i--;
             continue;
         }
+        else {
+            printf("Vous avez dépensé %d ECTS pour cette ligne\n", cout_total);
+            *cagnotte -= cout_total;
+            //met à jour
+            if (premier == NULL) {
+                premier = AjouterTourelles(premier, dernier, ligne_tourelles, i, erreur);
+                dernier = premier;
+            }
+            else {
+                dernier = AjouterTourelles(premier, dernier, ligne_tourelles, i, erreur);
+            }
 
-        *cagnotte -= cout_total;
-        premier = AjouterTourelles(premier, ligne_tourelles, i);
-        // TODO : si besoin, on peut visualiser la ligne tout de suite
+            //TODO
+        }
+        if (erreur->statut_erreur) {
+            return NULL;
+        }
     }
-
     return premier;
 }
 
-/*
- *  VerifEntreeLigne
- *  - Analyse la chaîne saisie par l'utilisateur (ex: "A 2,B 3")
- *  - Pour chaque paire (symbole, position), vérifie :
- *      * symbole valide
- *      * position dans [0..NB_EMPLACEMENTS - 1]
- *      * pas de doublon de position
- *  - Retourne le coût total (prix) si tout est OK
- *  - Retourne -1 si format invalide
- */
-int VerifEntreeLigne(char* ligne_tourelles) {
-    if (!ligne_tourelles) return -1;
 
-    int positions[NB_EMPLACEMENTS] = {0}; 
+int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur) {
+    /* vérifie 
+    1. La validité des symboles de tourelles
+    2. La validité du numéro de la position (entre 0 et NB_EMPLACEMENTS-1)
+    3. Pas de doublons dans les positions
+    4. Les paires sont symbole, position
+    5. Pas de dépassement de la cagnotte
+
+    Retourne le nombre d'ECTS dépensés
+    */
+   if (!ligne_tourelles) {
+         erreur->statut_erreur = 1;
+         strcpy(erreur->msg_erreur, "l'entrée est vide\n");
+         return -1;
+   }
+    int positions[NB_EMPLACEMENTS] = {0};  // Pour marquer les positions utilisées
     int solde_courant = 0;
     char symbole;
     int position;
+    int nb_matchs;
     char* ptr = ligne_tourelles;
+    
+    // paire symbole position
+    ////TODO possible, renvoyer l'erreur exacte
+    //if (sscanf(ptr, " %c %d", &symbole, &position) != 2) {
+        //erreur->statut_erreur = 1;
+        //strcpy(erreur->msg_erreur, "La première entrée est invalide\n");
+        //return -1;
+    //}
 
-    // On essaie de lire tant qu'on trouve "SYMBOLE [espace] POSITION"
-    while (sscanf(ptr, " %c %d", &symbole, &position) == 2) {
-        // Vérif symbole
+    while ((nb_matchs = sscanf(ptr, " %c %d", &symbole, &position)) == 2) {
+        // validité du symbole
         const TypeTourelle* type = trouverTypeTourelle(symbole);
-        if (!type) {
+        if (!type) return -1;  
+        
+        // validité de la position
+        if (position < 1 || position > NB_EMPLACEMENTS) {
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "Le numéro de l'emplacement entré est invalide\n");
             return -1;
         }
-
-        if (position < 0 || position >= NB_EMPLACEMENTS) {
+        if (positions[position-1]){
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "Vous ne pouvez pas placer deux tourelles au même endroit\n");
             return -1;
         }
-        if (positions[position]) {
-            return -1;
-        }
-        positions[position] = 1;
-
+        positions[position-1] = 1;
+        
+        // renouvellement du solde
         solde_courant += type->prix;
+        
+        // avance au prochain couple symbole-position
+        ptr++; // on avance jusqu'à l'espace
+        if (*ptr != ' ') {
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "Assurez-vous d'avoir un espace entre le symbole et le numéro de l'emplacement\n");
+            return -1;
+        }
+        ptr++;
+        // doit être un int
+        if (*ptr > '9' || *ptr < '0') {
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "Le format de l'emplacement entré est invalide\n");
+            return -1;
+        }
+        for (; *ptr <= '9' && *ptr >= '0'; ptr++);
 
-        while (*ptr && *ptr != ',' && *ptr != '\n') {
-            ptr++;
+        // si après le nombre il n'y a pas de virgule ou de retour à la ligne c'est invalide
+        if (*ptr && *ptr != ',' && *ptr != '\n') {
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "Assurez-vous d'avoir une virgule ou un retour à la ligne après le numéro de l'emplacement\n");
+            return -1;
         }
-        if (*ptr == ',') {
-            ptr++;
-            if (*ptr == ',') return -1;
-        }
+        if (*ptr == '\n') break;
+        ptr++;
+        for (; *ptr && *(ptr) == ' '; ptr++);
     }
+    if (nb_matchs != 2) {
+        erreur->statut_erreur = 1;
+        strcpy(erreur->msg_erreur, "Assurez-vous d'avoir le même nombre de symboles et de numéros d'emplacement\n");
+        return -1;
+    }
+    
     return solde_courant;
 }
-
-/*
- *  AjouterTourelles
- *  - Parse de nouveau la ligne (ex: "A 2,B 3") 
- *  - Alloue chaque nouvelle tourelle et l'insère en fin de liste 
- */
-Tourelle* AjouterTourelles(Tourelle* premier, char* ligne_tourelles, int ligne) {
-    if (!ligne_tourelles) return NULL;
-
+// AjouterTourelles parcourt à nouveau la ligne et chaîne chaque entrée
+Tourelle* AjouterTourelles(Tourelle* premier, Tourelle* dernier, char* ligne_tourelles, int ligne, Erreur* erreur) {
     char symbole;
     int position;
+    int nb_matchs;
+    // pointeur vers la paire symbole position
     char* ptr = ligne_tourelles;
+    // on trouve la dernière tourelle pour y juxtaposer les nouvelles
 
-    // On trouve le dernier élément de la liste "premier"
-    Tourelle* dernier = premier;
-    while (dernier && dernier->next != NULL) {
-        dernier = dernier->next;
-    }
+    while ((nb_matchs = sscanf(ptr, " %c %d", &symbole, &position)) == 2) {
 
-    // On lit chaque paire
-    while (sscanf(ptr, " %c %d", &symbole, &position) == 2) {
-        const TypeTourelle* type = trouverTypeTourelle(symbole);
-        if (!type) {
-            break;
-        }
-
-        Tourelle* nouvelle = (Tourelle*)malloc(sizeof(Tourelle));
-        if (!nouvelle) {
-            printf("Erreur d'allocation mémoire pour la tourelle.\n");
+        Tourelle* nouvelle_tourelle = (Tourelle*)malloc(sizeof(Tourelle));
+        if (nouvelle_tourelle == NULL) {
+            erreur->statut_erreur = 1;
+            printf("Erreur d'allocation mémoire\n");
+            printf("Les tourelles ajoutées vont être supprimées\n");
+            strcpy(erreur->msg_erreur, "Erreur d'allocation mémoire");
             LibererTourelles(premier);
             return NULL;
         }
-        nouvelle->type = (int)symbole;
-        nouvelle->pointsDeVie = type->pointsDeVie;
-        nouvelle->position = position;
-        nouvelle->prix = type->prix;
-        nouvelle->ligne = ligne;
-        nouvelle->next = NULL;
+        const TypeTourelle * type = trouverTypeTourelle(symbole);
+        nouvelle_tourelle->type = (int)symbole;
+        nouvelle_tourelle->pointsDeVie = type->pointsDeVie;
+        nouvelle_tourelle->prix = type->prix;
 
-        // Insertion en fin de liste
-        if (!premier) {
-            premier = nouvelle;
-            dernier = nouvelle; 
+        nouvelle_tourelle->ligne = ligne;
+        nouvelle_tourelle->position = position;
+        
+        // chainage par next
+        nouvelle_tourelle->next = NULL;
+        if (premier == NULL) {
+            premier = nouvelle_tourelle;
         }
         else {
-            dernier->next = nouvelle;
-            dernier = nouvelle;
+            dernier->next = nouvelle_tourelle;
         }
+        dernier = nouvelle_tourelle;
 
-        while (*ptr && *ptr != ',' && *ptr != '\n') {
-            ptr++;
-        }
-        if (*ptr == ',') {
-            ptr++;
-        }
-    }
-    return premier;
+        //  avance au prochain couple symbole-position, même s'il y a des espaces
+        while (*ptr && *ptr != ',' && *ptr != '\n') ptr++;
+        if (*ptr == ',') ptr++;
+    } 
+    return dernier;   
 }
 
-void supprimerTourelle(Jeu *jeu, Tourelle *t)
-{
-    if (!jeu || !t) return;
-    
-    Tourelle *current = jeu->tourelles;
-    Tourelle *prev    = NULL;
-
-    while (current) {
-        if (current == t) {
-            if (prev == NULL) {
-                jeu->tourelles = current->next;
-            }
-            else {
-                prev->next = current->next;
-            }
-            free(current);
-            return;
-        }
-        prev    = current;
-        current = current->next;
-    }
-}
 
 void LibererTourelles(Tourelle* premier) {
-    while (premier) {
+    while (premier != NULL) {
         Tourelle* temp = premier;
         premier = premier->next;
         free(temp);
