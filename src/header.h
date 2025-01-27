@@ -10,9 +10,9 @@
 #define HEADER_H
 #define NB_LIGNES 7
 #define NB_EMPLACEMENTS 15
-#define NB_TYPES_ENNEMIS 4
+#define NB_TYPES_ENNEMIS 5
 #define NB_ENNEMIS_MAX 1000
-#define NB_TYPES_TOURELLES 6
+#define NB_TYPES_TOURELLES 5
 
 // couleurs de texte de sortie terminal
 #define RESET "\033[0m"    

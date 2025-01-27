@@ -39,6 +39,7 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "pas d'ennemis à attaquer");
         }
+
         while (e != NULL && !(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position <= NB_EMPLACEMENTS + 1 && e->position > t->position)) {
             // si l'ennemi est mort, ou derrière la tourelle
                 e = e->next;
@@ -96,6 +97,9 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
         }
         if ((char)e->type == 'Z') {
             t->pointsDeVie -= 1;
+        }
+        if ((char)e->type == 'M') {
+            t->pointsDeVie -= 3;
         }
         e = e->next;
     }

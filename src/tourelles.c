@@ -11,11 +11,11 @@ eduroam - R : une fois sur deux, l'ennemi recule ou ne bouge pas
 
 const TypeTourelle TYPES_TOURELLES[] = {
     // symbole, points de vie, prix, nom
-    {'T', 3, 50, "Table"},                    // Tourelle de base
-    {'R', 2, 75, "Eduroam"},                  // Ralentit tout étudiant qui s'aventure sur sa ligne
+    {'T', 2, 50, "Table"},                    // Tourelle de base
+    {'R', 1, 75, "Eduroam"},                  // Ralentit tout étudiant qui s'aventure sur sa ligne
     {'L', 1, 100, "Diplôme LSO"},             // Explose au contact, détruit l'ennemi
-    {'E', 3, 150, "Emmanuel Lazard"},         // Dégâts sur trois lignes simultanément
-    {'B', 10, 50, "BU"},                      // Très résistante, fais office de mur
+    {'E', 2, 150, "Emmanuel Lazard"},         // Dégâts sur trois lignes simultanément
+    {'B', 9, 50, "BU"},                       // Très résistante, fais office de mur
 };
 
 const TypeTourelle* trouverTypeTourelle(char symbole) {
@@ -39,8 +39,8 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
     printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n\n");
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
         printf("%c : %s\n", TYPES_TOURELLES[i].symbole, TYPES_TOURELLES[i].nom);
-        printf("Points de vie : %d\n", TYPES_TOURELLES[i].pointsDeVie);
-        printf("Prix : %d\n", TYPES_TOURELLES[i].prix);
+        printf("    Points de vie : %d\n", TYPES_TOURELLES[i].pointsDeVie);
+        printf("    Prix : %d\n\n", TYPES_TOURELLES[i].prix);
     }
     printf("\n");
         //TODO si on ajoute des tourelles spéciales
