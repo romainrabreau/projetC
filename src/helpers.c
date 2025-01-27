@@ -83,7 +83,6 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     rewind(fichier_ennemis);
 }
 
-
 void Attendre(int ms) {
     usleep(ms * 1000);  // Pause en millisecondes
 }

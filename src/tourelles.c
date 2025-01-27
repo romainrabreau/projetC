@@ -1,10 +1,9 @@
 #include "header.h"
 
-
 /*types à ajouter
-diplôme LSO - L : explose au contante dès que atteinte par un étudiant. détruit immédiatement l'ennemi
+diplôme LSO - L : explose au contacte dès que atteinte par un étudiant. détruit immédiatement l'ennemi
 Emanuel Lazard - E : dommage sur trois lignes en mm temps
-BU - B : très résistante, 0 dégats infligés (mais  ralenti)
+BU - B : très résistante, 0 dégats infligés (rmais alenti)
 Feuille de présence - F : immobilise ennemi pendant 2 tours, très cher
 Amphi 4 - A : bloque tous les ennemis de la ligne pendant 1 tour
 eduroam - R : une fois sur deux, l'ennemi recule ou ne bouge pas
@@ -16,8 +15,9 @@ const TypeTourelle TYPES_TOURELLES[] = {
     {'L', 1, 100, "Diplôme LSO"},
     {'B', 10, 200, "BU"},
     {'F', 2, 300, "Feuille de présence"},
-    {'A', 0, 400, "Amphi 4"}
-    
+    {'A', 0, 400, "Amphi 4"},
+    {'E', 2, 150, "Emmanuel Lazard"}, // à modifier
+    {'R', 1, 75, "Eduroam"}, // à modifier
 };
 
 
@@ -42,11 +42,11 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
     printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n\n");
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
         printf("%c : %s\n", TYPES_TOURELLES[i].symbole, TYPES_TOURELLES[i].nom);
-        printf("Points de vie : %d\n", TYPES_TOURELLES[i].pointsDeVie);
-        printf("Prix : %d\n", TYPES_TOURELLES[i].prix);
+        printf("    Points de vie : %d\n", TYPES_TOURELLES[i].pointsDeVie);
+        printf("    Prix : %d\n\n", TYPES_TOURELLES[i].prix);
     }
     printf("\n");
-    //TODO si on ajoute des tourelles spéciales
+        //TODO si on ajoute des tourelles spéciales
     printf("Certaines tourelles ont des caractéristiques spéciales, notamment : \n\n");
     
     printf("Il vous faut maintenant placer les tourellles de défense sur les emplacements de votre choix.\n");
@@ -61,7 +61,6 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
     printf("Sinon, faites entrée pour passer à la ligne suivante\n\n");
     printf("Vous ne pouvez pas placer deux tourelles sur le même emplacement\n\n");
     printf("Vous ne pouvez pas dépenser plus que votre cagnotte.\n");
-
 
     Tourelle* premier = NULL;
     Tourelle* dernier = NULL;
