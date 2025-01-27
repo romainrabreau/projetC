@@ -34,9 +34,33 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             // pas d'ennemis à attaquer pour cette tourelle
             continue;
         }
-        if ((char)t->type == 'A') {
+        if ((char)t->type == 'T') {
             // tourelle de type basique
             e->pointsDeVie -= 1;
+        }
+        if ((char)t->type ==  'D' && t->position == e->position + 1) {
+            // tourelle diplôme LSO mine
+            e->pointsDeVie = 0;
+        }
+        if ((char)t->type == 'B') {
+            // tourelle BU mur de défense
+            // ne fait rien à l'ennemi
+        }
+        if ((char)t->type == 'F') {
+            // tourelle feuille de présence, immobilise l'ennemi pendant 2 tours
+            e->immobilisation = 2;
+    
+        }
+        if ((char)t->type == 'A') {
+            // tourelle amphi 4, bloque tous les ennemis de la ligne pendant 1 tour
+            Etudiant* e2 = jeu->etudiants;
+            while (e2 != NULL) {
+                if (e2->ligne == t->ligne && e2->position <= NB_EMPLACEMENTS && e->position > t->position) {
+                    e2->immobilisation = 1;
+                    
+                }
+                e2 = e2->next;
+            }
         }
         if (e->pointsDeVie<=0) {
             SupprimerEnnemi(jeu, erreur, e);
@@ -83,6 +107,11 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
     while (e) {
         // si l'ennemi est mort
         if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS) {
+            e = e->next;
+            continue;
+        }
+        if (e->immobilisation > 0) {
+            e->immobilisation--;
             e = e->next;
             continue;
         }

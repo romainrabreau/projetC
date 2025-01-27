@@ -89,6 +89,7 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         nouvel_etudiant->prev_line = NULL;
         
         nouvel_etudiant->vitesse = type->vitesse;
+        nouvel_etudiant->immobilisation = 0;
         nouvel_etudiant->type = (int)type->symbole;
         nouvel_etudiant->pointsDeVie = type->pointsDeVie;
 
