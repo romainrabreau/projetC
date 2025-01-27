@@ -40,7 +40,7 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             strcpy(erreur->msg_erreur, "pas d'ennemis à attaquer");
         }
         while (e != NULL && !(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position <= NB_EMPLACEMENTS + 1 && e->position > t->position)) {
-            // si l'ennemi est mort, ou derrière la tourelle, ounsurune ligne différente
+            // si l'ennemi est mort, ou derrière la tourelle
                 e = e->next;
         }
         if (e == NULL) {
@@ -48,10 +48,23 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             // pas d'ennemis à attaquer pour cette tourelle
             continue;
         }
-        if ((char)t->type == 'A') {
+        if ((char)t->type == 'T') {
             // tourelle de type basique
             e->pointsDeVie -= 1;
         }
+        if ((char)t->type == 'L' && t->position + 1 == e->position) {
+            // tourelle mine (Lso)
+            SupprimerEnnemi(jeu, erreur, e);
+            t->pointsDeVie = -1;
+        } 
+        
+        if (e->ligne == t->ligne || e->ligne == t->ligne + 1 || e->ligne == t->ligne - 1) {
+            if ((char)t->type == 'E') {
+                // TODO tourelle de type Emmanuel Lazard
+                e->pointsDeVie -= 3;
+            } 
+        }
+        
         if (e->pointsDeVie<=0) {
             SupprimerEnnemi(jeu, erreur, e);
         }

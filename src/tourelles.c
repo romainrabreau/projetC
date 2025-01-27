@@ -13,7 +13,7 @@ const TypeTourelle TYPES_TOURELLES[] = {
     // symbole, points de vie, prix, nom
     {'T', 3, 50, "Table"},                    // Tourelle de base
     {'R', 2, 75, "Eduroam"},                  // Ralentit tout étudiant qui s'aventure sur sa ligne
-    {'L', 1, 25, "Diplôme LSO"},              // Explose au contact, détruit l'ennemi
+    {'L', 1, 100, "Diplôme LSO"},             // Explose au contact, détruit l'ennemi
     {'E', 3, 150, "Emmanuel Lazard"},         // Dégâts sur trois lignes simultanément
     {'B', 10, 50, "BU"},                      // Très résistante, fais office de mur
 };
