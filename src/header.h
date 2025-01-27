@@ -12,7 +12,7 @@
 #define NB_EMPLACEMENTS 15
 #define NB_TYPES_ENNEMIS 4
 #define NB_ENNEMIS_MAX 1000
-#define NB_TYPES_TOURELLES 1
+#define NB_TYPES_TOURELLES 6
 
 // couleurs de texte de sortie terminal
 #define RESET "\033[0m"    

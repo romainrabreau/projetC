@@ -2,14 +2,28 @@
 
 void ApparitionEnnemis(Jeu* jeu, Erreur* erreur) {
     Etudiant* e = jeu->etudiants;
+
     while (e != NULL) {
         if (e->tour == jeu->tour) {
-            e->position = NB_EMPLACEMENTS + 1; // Départ hors plateau pour attaquer les tourelles juste devant
+            // Vérifie si l'étudiant précédent sur la même ligne occupe déjà la case d'apparition
+            int dejaOccupe = 0;
+            if (e->prev_line != NULL && 
+                e->prev_line->ligne == e->ligne &&
+                e->prev_line->position == (NB_EMPLACEMENTS + 1) &&
+                e->prev_line->pointsDeVie > 0) 
+            {
+                dejaOccupe = 1;
+            }
+            if (dejaOccupe) {
+                e->tour++;  // Décale l'apparition au tour suivant
+            } else {
+                e->position = NB_EMPLACEMENTS + 1;  // Positionne à la case d'apparition
+            }
         }
         e = e->next;
     }
-    return;
 }
+
 
 void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
     // inflige des dégâts aux ennemis en fonction du type de tourelle
@@ -25,7 +39,7 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "pas d'ennemis à attaquer");
         }
-        while (e != NULL && !(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position <= NB_EMPLACEMENTS && e->position > t->position)) {
+        while (e != NULL && !(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position <= NB_EMPLACEMENTS + 1 && e->position > t->position)) {
             // si l'ennemi est mort, ou derrière la tourelle, ounsurune ligne différente
                 e = e->next;
         }
@@ -141,6 +155,10 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
         ApparitionEnnemis(jeu, err);
         if(err->statut_erreur) return;
 
+        // Clean + Afficher le plateau
+        printf("\033[0;0H"); 
+        printf("\033[2J");
+        printf("Début du tour %d\n", jeu->tour);
         AfficherPlateau(jeu);
         printf("Appuyez sur Entrée pour continuer...\n");
         while ((getchar()) != '\n');
@@ -155,11 +173,19 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
         if(err->statut_erreur) return;
 
         if(PartiePerdue(jeu)) {
+            printf("\033[0;0H"); 
+            printf("\033[2J");
+            printf("Fin de Partie \n");
+            AfficherPlateau(jeu);
             printf("Vous avez perdu... Les étudiants ont pris l'université.\n");
             break;
         }
 
         if(PartieGagnee(jeu)) {
+            printf("\033[0;0H"); 
+            printf("\033[2J");
+            printf("Fin de Partie \n");
+            AfficherPlateau(jeu);
             printf("Bravo, vous avez défendu l'université !\n");
             break;
         }

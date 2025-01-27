@@ -1,11 +1,6 @@
 #include "header.h"
 
 void AfficherPlateau(Jeu* jeu) {
-    printf("\033[0;0H"); 
-    printf("\033[2J");
-
-    printf("Début du tour %d\n", jeu->tour);
-
     // Tableau tampon pour chaque case, ici on stocke 4 caractères max (ex: "3Z\0")
     char plateau[NB_LIGNES][NB_EMPLACEMENTS + 1][4]; // Emplacement supplémentaire pour les zombies arrivant
 
@@ -42,6 +37,18 @@ void AfficherPlateau(Jeu* jeu) {
         }
         e = e->next;
     }
+
+printf("   ");
+    for (int j = 0; j < NB_EMPLACEMENTS; j++) {
+        // Largeur 3 par colonne, alignée à gauche
+        printf("%-3d", j + 1);
+    }
+    printf("\n");
+
+    for (int j = 0; j < NB_EMPLACEMENTS + 1; j++) {
+        printf("---");
+    }
+    printf("\n");
 
     // Affichage final
     for(int i=0; i<NB_LIGNES; i++){

@@ -9,13 +9,15 @@ Amphi 4 - A : bloque tous les ennemis de la ligne pendant 1 tour
 eduroam - R : une fois sur deux, l'ennemi recule ou ne bouge pas
 */
 
-
 const TypeTourelle TYPES_TOURELLES[] = {
     // symbole, points de vie, prix, nom
-    {'A', 3, 50, "Tableau noir"},      // Type de base
-
+    {'A', 3, 50, "Amphi 4"},                    // Tourelle de base
+    {'L', 1, 100, "Diplôme LSO"},               // Explose au contact, détruit l'ennemi
+    {'E', 5, 200, "Emanuel Lazard"},            // Dégâts sur trois lignes simultanément
+    {'B', 10, 150, "BU"},                       // Très résistante, ralentit les ennemis
+    {'F', 2, 300, "Feuille de Présence"},       // Immobilise les ennemis pendant 2 tours
+    {'R', 4, 120, "Eduroam"},                   // Une fois sur deux, l'ennemi recule ou ne bouge pas
 };
-
 
 const TypeTourelle* trouverTypeTourelle(char symbole) {
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
