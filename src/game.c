@@ -52,15 +52,16 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             // tourelle de type basique
             e->pointsDeVie -= 1;
         }
-        if ((char)t->type ==  'D' && t->position == e->position + 1) {
+        if ((char)t->type ==  'D' && t->position == e->position - 1) {
             // tourelle diplôme LSO mine
             e->pointsDeVie = 0;
+            t->pointsDeVie = 0;
         }
         if ((char)t->type == 'B') {
             // tourelle BU mur de défense
             // ne fait rien à l'ennemi
         }
-        if ((char)t->type == 'F') {
+        if ((char)t->type == 'P') {
             // tourelle feuille de présence, immobilise l'ennemi pendant 2 tours
             e->immobilisation = 2;
     
@@ -76,14 +77,33 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
                 e2 = e2->next;
             }
         }
-        if (e->pointsDeVie<=0) {
+
+        if ((char)t->type == 'E') {
+            // Tourelle E Lazard, dégat de zone
+            Etudiant* e2 = jeu->etudiants;
+            while (e2 != NULL) {
+                if ((e2->ligne >= t->ligne - 1 && e2->ligne <= t->ligne + 1) &&
+                    (e2->position <= t->position + 4) &&
+                     e->position > t->position) {
+                    e2->pointsDeVie -= 1;
+                }
+                e2 = e2->next;
+            }
+        }
+
+        if ((char)t->type != 'B' && (char)e->type == 'S') {
+            // syndicaliste touché par la tourelle
+            e->touche = 1;
+        }
+        if (e->pointsDeVie<=0 && (char)e->type != 'S') {
+            // on ne supprime pas le syndicaliste pour pouvoir faire avancer les autres
             SupprimerEnnemi(jeu, erreur, e);
         }
-        //TODO si tourelles spéciales implémenter
         t = t->next;
     }
     return;
 }
+
 
 void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
     Etudiant* e = jeu->etudiants;
@@ -105,12 +125,26 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
             e = e->next;
             continue; 
         }
-        if ((char)e->type == 'Z') {
+        if ((char)e->type == 'Z' || (char)e->type == 'X' || (char)e->type == 'S') {
+            // type de base
             t->pointsDeVie -= 1;
         }
-        if ((char)e->type == 'M') {
+        if ((char)e->type == 'L') {
+            // gros dégâts, résistant mais très lent
             t->pointsDeVie -= 3;
         }
+        if ((char)e->type == 'F'){
+            // fainéant, fait des sauts aléatoires ou ne bouge pas pendant plusieurs tours, résistant
+            int choix = rand() % 2;
+            if (choix == 0) {
+                t->pointsDeVie -= 1;
+            }
+        }
+        if ((char)e->type == 'S') {
+            // syndicaliste
+            t->pointsDeVie -= 1;
+        }
+            
         e = e->next;
     }
     return;
@@ -133,12 +167,59 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         }
         int deplacement = e->vitesse;
 
+        if (e->next_line && (char)e->next_line->type == 'S' && e->next_line->touche == 1) {
+            // syndicaliste touché, augmente la vitesse de l'ennemi devant
+            deplacement++;
+            e->next_line->touche = 0;
+            if (e->next_line->pointsDeVie <= 0) {
+                // on supprime le syndicaliste qui est mort à l'étape précédente
+                SupprimerEnnemi(jeu, erreur, e->next_line);
+            }
+        }
+
+        if ((char)e->type == 'F') {
+            // Fainéant : comportement aléatoire
+            int choix = rand() % 6; 
+
+            if (choix == 0) {
+                // saute sur la ligne du dessus 
+                if (e->ligne > 1) {
+                    ChangerLigne(jeu, e, -1);
+                    printf("Le Fainéant a sauté sur la ligne du dessus.\n");
+                }
+            } else if (choix == 2) {
+                // saute sur la ligne en dessous d
+                if (e->ligne < NB_LIGNES) {
+                    ChangerLigne(jeu, e, 1);
+                    printf("Le Fainéant a sauté sur la ligne en dessous.\n");
+                }
+            } else {
+                // Ne fait rien (2/3)
+                printf("Le Fainéant reste immobile ce tour.\n");
+            }
+
+            e = e->next;  // Passe à l'ennemi suivant
+        }
+
+
         // vérification si il y a une attaque de tourelle qui définit la vitesse
         Tourelle* t1 = jeu->tourelles;
         while (t1) {
+            // si pour cette tourelle l'ennemi est celui qu'elle devrai attaquer
             if (t1->ligne == e->ligne && t1->pointsDeVie > 0 && t1->position < e->position && e->prev_line == NULL) {
                 if ((char)t1->type == 'R') { // tourelle eduroam
-                    deplacement = 1;
+                    int choix = rand() % 3;
+                    switch (choix) {
+                        case 0:
+                            deplacement = 0;
+                            break;
+                        case 1:
+                            deplacement = 1;
+                            break;
+                        case 2:
+                            deplacement = -1;
+                            break;
+                    }
                 }
             }
             t1 = t1->next;
@@ -150,6 +231,14 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
             // si l'ennemi est trop proche de celui de devant
             if (diff <= 0 ){
                 deplacement = e->position - (e->prev_line->position + 1);
+            }
+        }
+        // vérification ennemi derrière
+        if (e->next_line != NULL){
+            int diff = e->next_line->position - (e->position - deplacement);
+            // si l'ennemi est trop proche de celui de derrière
+            if (diff <= 0 ){
+                deplacement = e->next_line->position - (e->position - 1);
             }
         }
         // on doit vérifier si une tourelle ne bloque pas le passage

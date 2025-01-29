@@ -23,6 +23,7 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
         strcpy(erreur->msg_erreur, "le jeu n'a pas pu être initialisé\n");
         return;
     }
+
     int cagnotte=0;
     char newline;
     // vérifier que la première ligne contient uniquement le solde et le changement de ligne
@@ -31,6 +32,7 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
         strcpy(erreur->msg_erreur, "format de la cagnotte invalide\n");
         return;
     }
+
     jeu->cagnotte=cagnotte;
     printf("Cagnotte : %d\n", jeu->cagnotte);
     // on trie le fichier avec les ennemis et on résouts les doublons
@@ -38,6 +40,7 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     if (erreur->statut_erreur==1) {
         return;
     }
+    
     printf("Initialisation des ennemis en cours ...\n");
     printf("\033[36;47mInitialisation des ennemis en cours ..."RESET"\n");
 
@@ -93,6 +96,8 @@ int main(int argc, char *argv[]) {
     Erreur erreur;
     erreur.statut_erreur = 0;
     Jeu jeu;
+    // initialisation de la graine pour les fonctions aléatoires
+    srand((unsigned int)(uintptr_t)&erreur);
     InitialiserJeu(&erreur, &jeu, fichier_ennemis);
     if (erreur.statut_erreur==1) {
         fclose(fichier_ennemis);

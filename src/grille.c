@@ -38,25 +38,26 @@ void AfficherPlateau(Jeu* jeu) {
         e = e->next;
     }
 
-printf("   ");
+printf("      ");
     for (int j = 0; j < NB_EMPLACEMENTS; j++) {
         // Largeur 3 par colonne, alignée à gauche
-        printf("%-3d", j + 1);
+        printf("%-6d", j + 1);
     }
     printf("\n");
 
     for (int j = 0; j < NB_EMPLACEMENTS + 1; j++) {
-        printf("---");
+        printf("------");
     }
     printf("\n");
 
     // Affichage final
     for(int i=0; i<NB_LIGNES; i++){
-        printf("%d| ", i+1);        // Numéro de ligne, ex. “1| “
+        printf("   |  \n");
+        printf("%2d |  ", i + 1);        // Numéro de ligne, ex. “1| “
         for(int j=0; j < NB_EMPLACEMENTS + 1; j++){
-            printf("%-3s", plateau[i][j]);
+            printf("%-6s", plateau[i][j]);
         }
-        printf("\n");
+        printf("\n   |  \n");
     }
     printf("\n");
 }

@@ -11,10 +11,11 @@ type Hacker - H pirate les tourelles et les désactive pendant un tour
 const TypeEnnemi TYPES_ENNEMIS[] = {
     // symbole, points de vie, vitesse, nom
     {'Z', 3, 2, "Etudiant"},                // type de base
-    {'M', 9, 1, "Master"},                  // Gros dégâts mais très lent
-    {'T', 2, 3, "Etudiant Talent"},         // plus rapide mais moins résistant
-    {'L', 8, 1, "Etudiant L1"},             // plus résistant mais même vitesse
-    {'A', 4, 1, "Alternant"},               // un vilain qui change de ligne une fois dans la partie en sautant aléatoirement sur une des deux lignes adjacentes ;
+    {'L', 9, 1, "Etudiant L1"},             // Gros dégâts, résistant mais très lent
+    {'X', 2, 3, "Etudiant Talent"},         // plus rapide mais moins résistant
+    {'S', 3, 1, "Syndicaliste"}, // augmente la vitesse de l'ennemi devant lorsqu'il est touché
+    {'F', 7, 10, "Fainéant"}, // fait des sauts aléatoires ou ne bouge pas pendant plusieurs tour, résistant, 1 fois
+                            // sur 2 attaque la tourelle, 1 fois sur 3 fait des sauts
 };
 
 
@@ -90,6 +91,8 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         
         nouvel_etudiant->vitesse = type->vitesse;
         nouvel_etudiant->immobilisation = 0;
+        nouvel_etudiant->touche = 0;
+
         nouvel_etudiant->type = (int)type->symbole;
         nouvel_etudiant->pointsDeVie = type->pointsDeVie;
 

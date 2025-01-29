@@ -13,6 +13,8 @@
 #define NB_TYPES_ENNEMIS 5
 #define NB_ENNEMIS_MAX 1000
 #define NB_TYPES_TOURELLES 5
+// génération de nombres pseudo-aléatoires
+extern int nombreAleatoire;
 
 // couleurs de texte de sortie terminal
 #define RESET "\033[0m"    
@@ -61,6 +63,7 @@ typedef struct etudiant {
     int vitesse;
     int tour;
     int immobilisation;
+    int touche; // 1 si l'ennemi a été touché, utile uniquement pour le type S
     struct etudiant* next;
     struct etudiant* next_line;
     struct etudiant* prev_line;
@@ -116,7 +119,7 @@ Tourelle* AjouterTourelles(Tourelle* premier, Tourelle* dernier, char* ligne_tou
 // fonctions d'aide
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur);
 void Attendre(int ms);
-
+void ChangerLigne(Jeu * jeu, Etudiant* e, int saut);
 // prototypes de fonctions de jeu
 void JouerPartie(Jeu* jeu, Erreur* erreur);
 void AfficherPlateau(Jeu* jeu);

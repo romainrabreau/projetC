@@ -86,3 +86,54 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
 void Attendre(int ms) {
     usleep(ms * 1000);  // Pause en millisecondes
 }
+
+void ChangerLigne(Jeu * jeu, Etudiant* e, int saut) {
+    // change la ligne de l'ennemi
+    e->ligne += saut;
+    // modifie le chaînage de la ligne d'origine
+    if (e->prev_line) {
+        e->prev_line->next_line = e->next_line;
+    }
+    if (e->next_line) {
+        e->next_line->prev_line = e->prev_line;
+    }
+    e->prev_line = NULL;
+    e->next_line = NULL;
+    //place l'ennemi 
+    Etudiant * prev_ennemi = jeu->etudiants;
+    while (prev_ennemi) {
+        if (prev_ennemi->ligne == e->ligne) {
+            break;
+        }
+        prev_ennemi = prev_ennemi->next;
+    }
+    if (!prev_ennemi) {
+        return;
+    }
+
+    Etudiant * devant = NULL;
+    while (prev_ennemi && prev_ennemi->position < e->position) {
+        devant = prev_ennemi;
+        prev_ennemi = prev_ennemi->next_line;
+    } 
+    // - 'prev_ennemi' pointe vers le 1er ennemi ayant une position >= e->position
+    //   OU bien prev_ennemi est NULL (fin de liste).
+    // - 'devant' pointe vers l'ennemi qui a la position immédiatement derrière e (plus grande que e->position),
+    //   OU  NULL si e doit s’insérer au tout début.
+
+    // prev_ennemi est maintenant le l'ennemi le plus proche derrière
+    // si les positions sont identiques, on décale de 1 tant que la position est occupée
+    while (prev_ennemi && prev_ennemi->position == e->position) {
+        e->position++;
+        devant = prev_ennemi;
+        prev_ennemi = prev_ennemi->next_line;
+    }
+    e->prev_line = devant;
+    e->next_line = prev_ennemi;
+    if (devant) {
+        devant->next_line = e;
+    }
+    if (prev_ennemi) {
+        prev_ennemi->prev_line = e;
+    }
+}

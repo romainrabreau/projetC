@@ -3,7 +3,7 @@
 /*types à ajouter
 diplôme LSO - L : explose au contacte dès que atteinte par un étudiant. détruit immédiatement l'ennemi
 Emanuel Lazard - E : dommage sur trois lignes en mm temps
-BU - B : très résistante, 0 dégats infligés (rmais alenti)
+BU - B : très résistante, 0 dégats infligés (mais ralenti)
 Feuille de présence - F : immobilise ennemi pendant 2 tours, très cher
 Amphi 4 - A : bloque tous les ennemis de la ligne pendant 1 tour
 eduroam - R : une fois sur deux, l'ennemi recule ou ne bouge pas
@@ -11,13 +11,12 @@ eduroam - R : une fois sur deux, l'ennemi recule ou ne bouge pas
 
 const TypeTourelle TYPES_TOURELLES[] = {
     // symbole, points de vie, prix, nom
-    {'T', 3, 100, "Tableau noir"},      // base
-    {'L', 1, 100, "Diplôme LSO"},
-    {'B', 10, 200, "BU"},
-    {'F', 2, 300, "Feuille de présence"},
-    {'A', 0, 400, "Amphi 4"},
-    {'E', 2, 150, "Emmanuel Lazard"}, // à modifier
-    {'R', 1, 75, "Eduroam"}, // à modifier
+    {'T', 3, 80, "Tableau noir"},// base
+    {'D', 1, 80, "Diplôme LSO"},
+    {'B', 10, 120, "BU"},
+    {'P', 2, 180, "Feuille de présence"},
+    {'E', 2, 300, "Emmanuel Lazard"},
+    {'R', 1, 150, "Eduroam"}, 
 };
 
 
@@ -34,8 +33,7 @@ const TypeTourelle* trouverTypeTourelle(char symbole) {
  *  InitialiserTourelles
  *  - Affiche la liste des tourelles disponibles
  *  - Demande à l'utilisateur de positionner ses tourelles
- *  - Retourne la l
- * iste chaînée de tourelles créées
+ *  - Retourne la liste chaînée de tourelles créées
  */
 Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
 
