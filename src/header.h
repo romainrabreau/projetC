@@ -13,6 +13,7 @@
 #define NB_TYPES_ENNEMIS 5
 #define NB_ENNEMIS_MAX 1000
 #define NB_TYPES_TOURELLES 7
+#define MAX_SCORES 10
 
 // couleurs de texte de sortie terminal
 #define RESET "\033[0m"    
@@ -52,6 +53,7 @@ d’apparition dans le jeu via le champ next mais ils sont de plus doublement ch
 (champs next_line et prev_line). On peut ainsi rapidement connaître celui qui précède et celui qui suit sur la même ligne. Ces trois pointeurs devront toujours être à jour durant l’exécution
 du programme, à chaque insertion mais aussi à chaque suppression.
 */
+
 typedef struct etudiant {
     // type correspond a la valeur ASCII du symbole associé
     int type;
@@ -94,6 +96,9 @@ typedef struct {
     // pointeur vers le premier ennemi
     Etudiant* etudiants;
     int cagnotte;
+    int score;
+    char pseudo[50];
+    char fichier_ennemis[100];
     int tour;
 } Jeu;
 
@@ -113,9 +118,15 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur);
 int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur);
 void LibererTourelles(Tourelle* premier);
 Tourelle* AjouterTourelles(Tourelle* premier, Tourelle* dernier, char* ligne_tourelles, int ligne, Erreur* erreur);
+
 // fonctions d'aide
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur);
 void Attendre(int ms);
+
+// Fonctions de scoring
+void AddToScore(Jeu* jeu, Etudiant* ennemi, Erreur* erreur);
+void AddToLeaderboard(Jeu* jeu);
+void AfficherLeaderboard();
 
 // prototypes de fonctions de jeu
 void JouerPartie(Jeu* jeu, Erreur* erreur);
@@ -127,5 +138,6 @@ void print_avec_delai(const char *text, int delai_ms);
 
 // Accès au type des ennemis
 extern const TypeEnnemi TYPES_ENNEMIS[];
+extern const TypeTourelle TYPES_TOURELLES[];
 
 #endif

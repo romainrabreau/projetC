@@ -40,6 +40,17 @@ void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur) {
         courant = courant->next;
     }
 
+    printf("  ");
+    for (int i = 0; i < maxTour; i++) {
+        printf(ANSI_BLUE_TEXT "%2d " ANSI_RESET, i + 1);
+    }
+    printf("\n");
+
+    for (int i = 0; i <= maxTour; i++) {
+        printf(ANSI_BLUE_TEXT "---" ANSI_RESET);
+    }
+    printf("\n");
+    
     for (int i = 0; i < NB_LIGNES; i++) {
         printf(ANSI_BLUE_TEXT "%d| " ANSI_RESET, i + 1);
         for (int j = 0; j < maxTour; j++) {
@@ -54,13 +65,22 @@ void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur) {
     printf("\n");
 }
 
+void VisualiserTourelles(Tourelle* t) {
+    printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n\n");
+    for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
+        printf("%c : %s\n", TYPES_TOURELLES[i].symbole, TYPES_TOURELLES[i].nom);
+        printf("    Points de vie : %d\n", TYPES_TOURELLES[i].pointsDeVie);
+        printf("    Prix : %d\n\n", TYPES_TOURELLES[i].prix);
+    }
+}
+
 void IntroduireJeu(Erreur *erreur) {
-    printf(ANSI_LIGHT_BLUE_BG ANSI_WHITE_TEXT"██╗     ██╗ ██████╗███████╗███╗   ██╗ ██████╗███████╗    ██╗   ██╗███████╗    ███████╗████████╗██╗   ██╗██████╗ ██╗ █████╗ ███╗   ██╗████████╗███████╗\n");
-    printf("██║     ██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝    ██║   ██║██╔════╝    ██╔════╝╚══██╔══╝██║   ██║██╔══██╗██║██╔══██╗████╗  ██║╚══██╔══╝██╔════╝\n");
-    printf("██║     ██║██║     █████╗  ██╔██╗ ██║██║     █████╗      ██║   ██║███████╗    █████╗     ██║   ██║   ██║██║  ██║██║███████║██╔██╗ ██║   ██║   ███████╗\n");
-    printf("██║     ██║██║     ██╔══╝  ██║╚██╗██║██║     ██╔══╝      ╚██╗ ██╔╝╚════██║    ██╔══╝     ██║   ██║   ██║██║  ██║██║██╔══██║██║╚██╗██║   ██║   ╚════██║\n");
-    printf("███████╗██║╚██████╗███████╗██║ ╚████║╚██████╗███████╗     ╚████╔╝ ███████║    ███████╗   ██║   ╚██████╔╝██████╔╝██║██║  ██║██║ ╚████║   ██║   ███████║\n");
-    printf("╚══════╝╚═╝ ╚═════╝╚══════╝╚═╝  ╚═══╝ ╚═════╝╚══════╝      ╚═══╝  ╚══════╝    ╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝\n"ANSI_RESET);
+    printf(ANSI_LIGHT_BLUE_BG ANSI_WHITE_TEXT"        ██╗     ██╗ ██████╗███████╗███╗   ██╗ ██████╗███████╗    ██╗   ██╗███████╗    ███████╗████████╗██╗   ██╗██████╗ ██╗ █████╗ ███╗   ██╗████████╗███████╗      \n");
+    printf("        ██║     ██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝    ██║   ██║██╔════╝    ██╔════╝╚══██╔══╝██║   ██║██╔══██╗██║██╔══██╗████╗  ██║╚══██╔══╝██╔════╝      \n");
+    printf("        ██║     ██║██║     █████╗  ██╔██╗ ██║██║     █████╗      ██║   ██║███████╗    █████╗     ██║   ██║   ██║██║  ██║██║███████║██╔██╗ ██║   ██║   ███████╗      \n");
+    printf("        ██║     ██║██║     ██╔══╝  ██║╚██╗██║██║     ██╔══╝      ╚██╗ ██╔╝╚════██║    ██╔══╝     ██║   ██║   ██║██║  ██║██║██╔══██║██║╚██╗██║   ██║   ╚════██║      \n");
+    printf("        ███████╗██║╚██████╗███████╗██║ ╚████║╚██████╗███████╗     ╚████╔╝ ███████║    ███████╗   ██║   ╚██████╔╝██████╔╝██║██║  ██║██║ ╚████║   ██║   ███████║      \n");
+    printf("        ╚══════╝╚═╝ ╚═════╝╚══════╝╚═╝  ╚═══╝ ╚═════╝╚══════╝      ╚═══╝  ╚══════╝    ╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝      \n"ANSI_RESET);
     
     animer_attente(2000, CLEAR_LINE);
     print_avec_delai(ANSI_BLUE_TEXT "Bienvenue dans 'Licence vs Étudiant'. \n\n"ANSI_RESET, 50);

@@ -257,6 +257,7 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
             printf("\033[0;0H"); 
             printf("\033[2J");
             printf("Fin de Partie \n");
+            jeu->score = 0; // Pour ne pas affecter le leaderboard
             AfficherPlateau(jeu);
             printf("Vous avez perdu... Les étudiants ont pris l'université.\n");
             break;
@@ -266,7 +267,9 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
             printf("\033[0;0H"); 
             printf("\033[2J");
             printf("Fin de Partie \n");
+            jeu->score += jeu->cagnotte * 3; // constante à modifier si besoin.
             AfficherPlateau(jeu);
+            AddToLeaderboard(jeu);
             printf("Bravo, vous avez défendu l'université !\n");
             break;
         }

@@ -5,7 +5,6 @@
 type Insomniaque -  I sa vitesse augmente à chaque tour
 type Syndicaliste - S augmente la vitesse des ennemis adjacents lorsqu'il est touché
 type Fainéant - F fait des sauts aléatoires ou ne bouge pas pendant plusieurs tour, forte résistance
-type Hacker - H pirate les tourelles et les désactive pendant un tour
 */
 
 const TypeEnnemi TYPES_ENNEMIS[] = {
@@ -131,6 +130,8 @@ void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
         erreur->statut_erreur=1;
         strcpy(erreur->msg_erreur, "Erreur d'accès à l'ennemi ou au jeu\n");
     }
+
+    AddToScore(jeu, ennemi, erreur);
 
     // chainage
     if (ennemi == jeu->etudiants) {

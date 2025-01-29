@@ -30,13 +30,19 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
         return;
     }
     jeu->cagnotte=cagnotte;
-    printf("Cagnotte : %d\n", jeu->cagnotte);
     // on trie le fichier avec les ennemis et on résouts les doublons
     //ResoudreFichier(fichier_ennemis, erreur);
     if (erreur->statut_erreur==1) {
         return;
     }
-    printf("Initialisation des ennemis en cours ...\n");
+
+    // Initialisation du peudo du joueur.
+    printf("Entrez votre pseudo : ");
+    scanf("%49s", jeu->pseudo);
+    while (getchar() != '\n');
+    animer_attente(1000, "Ajout du pseudo...");
+
+
     printf("\033[36;47mInitialisation des ennemis en cours ..."RESET"\n");
 
     Etudiant * etudiants = InitialisationEnnemis(fichier_ennemis, jeu, erreur);
@@ -52,12 +58,14 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     }
     printf("\033[36;47mInitialisation des tourelles en cours ..."RESET"\n");
 
+    // Visualiser tourelles.
     Tourelle * tourelles = InitialisationTourelles(&jeu->cagnotte, erreur);
     if (erreur->statut_erreur==1) {
         return;
     }
     // pointe vers la première tourelle
     jeu->tourelles = tourelles;
+    jeu->score = 0;
     return;
 }
 
@@ -91,6 +99,11 @@ int main(int argc, char *argv[]) {
     Erreur erreur;
     erreur.statut_erreur = 0;
     Jeu jeu;
+
+    strncpy(jeu.fichier_ennemis, argv[1], sizeof(jeu.fichier_ennemis) - 1);
+    jeu.fichier_ennemis[sizeof(jeu.fichier_ennemis) - 1] = '\0';
+
+
     InitialiserJeu(&erreur, &jeu, fichier_ennemis);
     if (erreur.statut_erreur==1) {
         fclose(fichier_ennemis);
@@ -101,6 +114,7 @@ int main(int argc, char *argv[]) {
     fclose(fichier_ennemis);
 
     JouerPartie(&jeu, &erreur);
+    AfficherLeaderboard();
 
     if (erreur.statut_erreur == 1) {
         printf("%s", erreur.msg_erreur);
