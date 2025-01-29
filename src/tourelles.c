@@ -1,22 +1,16 @@
 #include "header.h"
 
-/*types à ajouter
-diplôme LSO - L : explose au contacte dès que atteinte par un étudiant. détruit immédiatement l'ennemi
-Emanuel Lazard - E : dommage sur trois lignes en mm temps
-BU - B : très résistante, 0 dégats infligés (rmais alenti)
-Feuille de présence - F : immobilise ennemi pendant 2 tours, très cher
-Amphi 4 - A : bloque tous les ennemis de la ligne pendant 1 tour
-eduroam - R : une fois sur deux, l'ennemi recule ou ne bouge pas
-*/
-
 const TypeTourelle TYPES_TOURELLES[] = {
     // symbole, points de vie, prix, nom
-    {'T', 2, 50, "Table"},                    // Tourelle de base
-    {'R', 1, 75, "Eduroam"},                  // Ralentit tout étudiant qui s'aventure sur sa ligne
-    {'L', 1, 100, "Diplôme LSO"},             // Explose au contact, détruit l'ennemi
-    {'E', 2, 150, "Emmanuel Lazard"},         // Dégâts sur trois lignes simultanément
-    {'B', 9, 50, "BU"},                       // Très résistante, fais office de mur
+    {'T', 3, 100, "Tableau noir"},      // Tourelle de base
+    {'L', 1, 100, "Diplôme LSO"},       // Mine qui explose au contact de n'importe quel ennemi.
+    {'B', 10, 200, "BU"},               // Tourelle de type mur
+    {'E', 2, 150, "Emmanuel Lazard"},   // dégats sur une zone de 3 lignes et 3 positions devant elle
+    {'R', 1, 75, "Eduroam"},            // Ralentit un ennemi (vitesse = 1)
+    {'F', 2, 300, "Feuille de présence"}, 
+    {'A', 0, 400, "Amphi 4"},           // à tej...
 };
+
 
 const TypeTourelle* trouverTypeTourelle(char symbole) {
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
@@ -99,7 +93,7 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
             else {
                 dernier = AjouterTourelles(premier, dernier, ligne_tourelles, i, erreur);
             }
-            
+
             //TODO
         }
         if (erreur->statut_erreur) {

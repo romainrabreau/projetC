@@ -1,7 +1,5 @@
 #include "src/header.h"
 
-
-
 // Initialiser structures de données du jeu des tourelles et des ennemis
 void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     if (erreur->statut_erreur==1) {

@@ -10,11 +10,11 @@ type Hacker - H pirate les tourelles et les désactive pendant un tour
 
 const TypeEnnemi TYPES_ENNEMIS[] = {
     // symbole, points de vie, vitesse, nom
-    {'Z', 3, 2, "Etudiant"},                // type de base
-    {'M', 9, 1, "Master"},                  // Gros dégâts mais très lent
-    {'T', 2, 3, "Etudiant Talent"},         // plus rapide mais moins résistant
-    {'L', 8, 1, "Etudiant L1"},             // plus résistant mais même vitesse
-    {'A', 4, 1, "Alternant"},               // un vilain qui change de ligne une fois dans la partie en sautant aléatoirement sur une des deux lignes adjacentes ;
+    {'Z', 3, 1, "Etudiant dormeur"},            // type de base
+    {'M', 9, 1, "Master"},                      // Gros dégâts mais très lent
+    {'S', 2, 3, "Etudiant Talent sprinteur"},   // plus rapide mais moins résistant
+    {'D', 8, 1, "Doctorant"},                   // Résistant et soigne les ennemis de 1 pv par tour de sa ligne.
+    {'A', 4, 1, "Alternant"},                   // Change de ligne une fois dans la partie en sautant aléatoirement sur une des deux lignes adjacentes
 };
 
 
@@ -38,7 +38,6 @@ const TypeEnnemi* VerifType(int *tour, int *ligne, char *symbole, Erreur *erreur
     }
     return type_ennemi;
 }
-
 
 // on considère que chaque élement dans le fichier d'apparition d'un ennemi est unique et triée par ordre croissant
 // tri d'abord par tour puis par ligne
@@ -90,6 +89,7 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         nouvel_etudiant->prev_line = NULL;
         
         nouvel_etudiant->vitesse = type->vitesse;
+        nouvel_etudiant->immobilisation = 0;
         nouvel_etudiant->type = (int)type->symbole;
         nouvel_etudiant->pointsDeVie = type->pointsDeVie;
 

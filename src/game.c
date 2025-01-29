@@ -8,7 +8,6 @@ void ApparitionEnnemis(Jeu* jeu, Erreur* erreur) {
             // Vérifie si l'étudiant précédent sur la même ligne occupe déjà la case d'apparition
             int dejaOccupe = 0;
             if (e->prev_line != NULL && 
-                e->prev_line->ligne == e->ligne &&
                 e->prev_line->position == (NB_EMPLACEMENTS + 1) &&
                 e->prev_line->pointsDeVie > 0) 
             {
@@ -53,19 +52,42 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             // tourelle de type basique
             e->pointsDeVie -= 1;
         }
-        if ((char)t->type == 'L' && t->position + 1 == e->position) {
-            // tourelle mine (Lso)
-            SupprimerEnnemi(jeu, erreur, e);
-            t->pointsDeVie = -1;
-        } 
-        
-        if (e->ligne == t->ligne || e->ligne == t->ligne + 1 || e->ligne == t->ligne - 1) {
-            if ((char)t->type == 'E') {
-                // TODO tourelle de type Emmanuel Lazard
-                e->pointsDeVie -= 3;
-            } 
+        if ((char)t->type ==  'L' && t->position == e->position - 1) {
+            // tourelle diplôme LSO mine
+            e->pointsDeVie = 0;
+            t->pointsDeVie = 0;
         }
-        
+        if ((char)t->type == 'B') {
+            // tourelle BU mur de défense, ne fait rien à l'ennemi
+        }
+        if ((char)t->type == 'F') { // Trop fort...
+            // tourelle feuille de présence, immobilise l'ennemi pendant 2 tours
+            e->immobilisation = 2;
+    
+        }
+        if ((char)t->type == 'A') {
+            // tourelle amphi 4, bloque tous les ennemis de la ligne pendant 1 tour
+            Etudiant* e2 = jeu->etudiants;
+            while (e2 != NULL) {
+                if (e2->ligne == t->ligne && e2->position <= NB_EMPLACEMENTS && e->position > t->position) {
+                    e2->immobilisation = 1;
+                }
+                e2 = e2->next;
+            }
+        }
+        if ((char)t->type == 'E') {
+            // Tourelle E Lazard
+            Etudiant* e2 = jeu->etudiants;
+            while (e2 != NULL) {
+                if ((e2->ligne >= t->ligne - 1 && e2->ligne <= t->ligne + 1) &&
+                    (e2->position <= t->position + 4) &&
+                     e->position > t->position) {
+
+                    e2->pointsDeVie -= 1;
+                }
+                e2 = e2->next;
+            }
+        }
         if (e->pointsDeVie<=0) {
             SupprimerEnnemi(jeu, erreur, e);
         }
@@ -86,6 +108,28 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
         if (t == NULL) {
             return;
         }
+
+        if ((char)e->type == 'D'){
+            // Trouver les étudiants sur la même ligne
+            Etudiant* e2 = jeu->etudiants;
+            while (e2 != NULL) {
+                if (e2->ligne == e->ligne &&
+                    e2->position <= NB_EMPLACEMENTS) {
+                    // Trouver les pv Max de l'étudiants
+                    int pvMax;
+                    for (int i = 0; i < NB_TYPES_ENNEMIS; i++) {
+                        if (TYPES_ENNEMIS[i].symbole == e2->type) {
+                                pvMax = TYPES_ENNEMIS[i].pointsDeVie;
+                        }
+                    }
+                    // Soigner l'étudiant dans la limite de ses pvMax
+                    if (e2->pointsDeVie < pvMax){
+                        e2->pointsDeVie++;
+                    }
+                }
+                e2 = e2->next;
+            }
+        }
         // on trouve la tourelle que va attaquer l'ennemi, pour les ennemis qui attaquent celle devant eux
         while (t != NULL && !(t->ligne == e->ligne && t->pointsDeVie > 0 && e->position == t->position + 1)) {
             // si la tourelle est morte, ou pas direct devant l'ennemi, ou sur une ligne différente
@@ -95,12 +139,16 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
             e = e->next;
             continue; 
         }
-        if ((char)e->type == 'Z') {
+        if ((char)e->type == 'Z' ||
+            (char)e->type == 'S' ||
+            (char)e->type == 'D' ||
+            (char)e->type == 'A' ) {
             t->pointsDeVie -= 1;
         }
         if ((char)e->type == 'M') {
             t->pointsDeVie -= 3;
         }
+
         e = e->next;
     }
     return;
@@ -111,21 +159,23 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
     // déplace les ennemis en fonction de leur vitesse, prend en compte les collisions
     Etudiant* e = jeu->etudiants;
     while (e) {
-        // si l'ennemi est mort ou pas encore sur le plateau
-        if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS + 1) {
+        // si l'ennemi est mort
+        if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS +1) {
             e = e->next;
             continue;
         }
-
-        // Affectation de la vitesse  par les tourelles
-        Tourelle* t1 = jeu->tourelles;
+        if (e->immobilisation > 0) {
+            e->immobilisation--;
+            e = e->next;
+            continue;
+        }
         int deplacement = e->vitesse;
+
+        // vérification si il y a une attaque de tourelle qui définit la vitesse
+        Tourelle* t1 = jeu->tourelles;
         while (t1) {
-            if (t1->ligne == e->ligne 
-            && t1->pointsDeVie > 0 
-            && t1->position < e->position
-            && e->prev_line == NULL) {
-                if ((char)t1->type == 'R') {
+            if (t1->ligne == e->ligne && t1->pointsDeVie > 0 && t1->position < e->position && e->prev_line == NULL) {
+                if ((char)t1->type == 'R') { // tourelle eduroam
                     deplacement = 1;
                 }
             }
@@ -140,9 +190,8 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
                 deplacement = e->position - (e->prev_line->position + 1);
             }
         }
-
-        Tourelle* t = jeu->tourelles;
         // on doit vérifier si une tourelle ne bloque pas le passage
+        Tourelle* t = jeu->tourelles;
         while (t) {
             // vérifie si la tourelle est sur la même ligne, si elle est vivante, si elle est devant l'ennemi et si elle est sur la trajectoire
             if (t->ligne == e->ligne && t->pointsDeVie > 0 && t->position < e->position && t->position >= e->position - deplacement) {
