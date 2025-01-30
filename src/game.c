@@ -104,6 +104,9 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
             e = e->next;
             continue;
         }
+        if (e->pointsDeVie<=0) {
+            SupprimerEnnemi(jeu, erreur, e);
+        }
         Tourelle* t = jeu->tourelles;
         if (t == NULL) {
             return;

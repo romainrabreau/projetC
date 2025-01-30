@@ -78,8 +78,6 @@ void LibererJeu(Jeu* jeu) {
 }
 
 int main(int argc, char *argv[]) {
-    printf("\033[0;0H");
-    printf("\033[2J");
     if (argc!=2) {
         printf("assurez-vous d'avoir entré exactement un nom de fichier\n");
         return 1;
@@ -90,16 +88,31 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     
-    FILE * fichier_ennemis = fopen(argv[1], "r");
+    // structure pour conserver le statut et le message d'erreur
+    Erreur erreur;
+    erreur.statut_erreur = 0;
+
+    FILE* tmp = fopen(argv[1], "r");
+    if (!tmp) {
+        printf("le fichier n'a pas pu être ouvert\n");
+        return 1;
+    }
+
+    ResoudreFichier(tmp, &erreur);
+    if (erreur.statut_erreur == 1) {
+        printf("%s\n", erreur.msg_erreur);
+        return 1;
+    }
+
+    FILE* fichier_ennemis = fopen(argv[1], "r");
     if (fichier_ennemis == NULL) {
         printf("le fichier n'a pas pu être ouvert\n");
         return 1;
     }
-    // structure pour conserver le statut et le message d'erreur
-    Erreur erreur;
-    erreur.statut_erreur = 0;
-    Jeu jeu;
 
+    printf("\033[0;0H");
+    printf("\033[2J");
+    Jeu jeu;
     strncpy(jeu.fichier_ennemis, argv[1], sizeof(jeu.fichier_ennemis) - 1);
     jeu.fichier_ennemis[sizeof(jeu.fichier_ennemis) - 1] = '\0';
 
