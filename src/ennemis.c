@@ -12,7 +12,7 @@ const TypeEnnemi TYPES_ENNEMIS[] = {
     // symbole, points de vie, vitesse, nom
     {'Z', 3, 2, "Etudiant"},                // type de base
     {'L', 9, 1, "Etudiant L1"},             // Gros dégâts, résistant mais très lent
-    {'X', 2, 3, "Etudiant Talent"},         // plus rapide mais moins résistant
+    {'X', 2, 4, "Etudiant Talent"},         // plus rapide mais moins résistant
     {'S', 3, 1, "Syndicaliste"}, // augmente la vitesse de l'ennemi devant lorsqu'il est touché
     {'F', 7, 10, "Fainéant"}, // fait des sauts aléatoires ou ne bouge pas pendant plusieurs tour, résistant, 1 fois
                             // sur 2 attaque la tourelle, 1 fois sur 3 fait des sauts
@@ -48,6 +48,17 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         strcpy(erreur->msg_erreur, "le fichier n'a pas pu être ouvert\n");
         return NULL;
     }
+
+    printf("Plusieurs ennemis feront leur apparition au cours de ce jeu : \n\n");
+    for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
+        printf(ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC "%c" ANSI_RESET ": " ANSI_TEXTE_BLEU_FONCE "%s\n"ANSI_RESET, TYPES_ENNEMIS[i].symbole, TYPES_ENNEMIS[i].nom);
+        printf("    ⟡ Points de vie : " ANSI_TEXTE_BLEU_MOYEN "%d\n" ANSI_RESET, TYPES_ENNEMIS[i].pointsDeVie);
+        printf("    ⚡︎ Vitesse : " ANSI_TEXTE_BLEU_MOYEN "%d \n\n" ANSI_RESET, TYPES_ENNEMIS[i].vitesse);
+    }
+    printf("\n");
+    printf("A vous de les arrêter !\n\n");
+
+
 
     Etudiant* premier = NULL;  // premier ajouté
     Etudiant* dernier = NULL;  // dernier ajouté
@@ -160,5 +171,6 @@ void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
     if (ennemi->next_line) {
         ennemi->next_line->prev_line = ennemi->prev_line;
     }
+    printf("L'ennemi a été supprimé\n");
     free(ennemi);
 }

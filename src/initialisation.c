@@ -1,17 +1,12 @@
 #include "header.h"
 
-#define ANSI_RESET "\033[0m"
-#define ANSI_BLUE_BG "\033[44m"
-#define ANSI_LIGHT_BLUE_BG "\033[104m"
-#define ANSI_WHITE_TEXT "\033[97m"
-#define ANSI_BLUE_TEXT "\033[94m"
 
 void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur) {
     printf("\n");
-    printf(ANSI_BLUE_TEXT "Vagues d'ennemis selon les tours et les lignes :" ANSI_RESET "\n\n");
+    printf(ANSI_TEXTE_BLEU_MOYEN "Vagues d'ennemis selon les tours et les lignes :" ANSI_RESET "\n\n");
 
     if (etudiants == NULL) {
-        printf(ANSI_LIGHT_BLUE_BG ANSI_WHITE_TEXT "Pas d'etudiants en approche." ANSI_RESET "\n");
+        printf(ANSI_BG_BLEU_CLAIR ANSI_TEXTE_BLANC "Pas d'etudiants en approche." ANSI_RESET "\n");
         return;
     }
 
@@ -41,12 +36,12 @@ void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur) {
     }
 
     for (int i = 0; i < NB_LIGNES; i++) {
-        printf(ANSI_BLUE_TEXT "%d| " ANSI_RESET, i + 1);
+        printf(ANSI_TEXTE_BLEU_MOYEN "%d| " ANSI_RESET, i + 1);
         for (int j = 0; j < maxTour; j++) {
             if (waves[i][j] == '.') {
-                printf(ANSI_LIGHT_BLUE_BG ANSI_WHITE_TEXT "%c  " ANSI_RESET, waves[i][j]);
+                printf(ANSI_BG_BLEU_CLAIR ANSI_TEXTE_BLANC "%c  " ANSI_RESET, waves[i][j]);
             } else {
-                printf(ANSI_BLUE_BG ANSI_WHITE_TEXT "%c" ANSI_LIGHT_BLUE_BG "  " ANSI_RESET, waves[i][j]);
+                printf(ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC "%c" ANSI_BG_BLEU_CLAIR "  " ANSI_RESET, waves[i][j]);
             }
         }
         printf("\n");
@@ -55,14 +50,16 @@ void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur) {
 }
 
 void IntroduireJeu(Erreur *erreur) {
-    printf(ANSI_LIGHT_BLUE_BG ANSI_WHITE_TEXT"██╗     ██╗ ██████╗███████╗███╗   ██╗ ██████╗███████╗    ██╗   ██╗███████╗    ███████╗████████╗██╗   ██╗██████╗ ██╗ █████╗ ███╗   ██╗████████╗███████╗\n");
+    printf(ANSI_BG_BLEU_SHINY ANSI_TEXTE_BLANC"██╗     ██╗ ██████╗███████╗███╗   ██╗ ██████╗███████╗    ██╗   ██╗███████╗    ███████╗████████╗██╗   ██╗██████╗ ██╗ █████╗ ███╗   ██╗████████╗███████╗\n");
     printf("██║     ██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝    ██║   ██║██╔════╝    ██╔════╝╚══██╔══╝██║   ██║██╔══██╗██║██╔══██╗████╗  ██║╚══██╔══╝██╔════╝\n");
     printf("██║     ██║██║     █████╗  ██╔██╗ ██║██║     █████╗      ██║   ██║███████╗    █████╗     ██║   ██║   ██║██║  ██║██║███████║██╔██╗ ██║   ██║   ███████╗\n");
     printf("██║     ██║██║     ██╔══╝  ██║╚██╗██║██║     ██╔══╝      ╚██╗ ██╔╝╚════██║    ██╔══╝     ██║   ██║   ██║██║  ██║██║██╔══██║██║╚██╗██║   ██║   ╚════██║\n");
     printf("███████╗██║╚██████╗███████╗██║ ╚████║╚██████╗███████╗     ╚████╔╝ ███████║    ███████╗   ██║   ╚██████╔╝██████╔╝██║██║  ██║██║ ╚████║   ██║   ███████║\n");
     printf("╚══════╝╚═╝ ╚═════╝╚══════╝╚═╝  ╚═══╝ ╚═════╝╚══════╝      ╚═══╝  ╚══════╝    ╚══════╝   ╚═╝    ╚═════╝ ╚═════╝ ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝\n"ANSI_RESET);
-    
-    animer_attente(2000, CLEAR_LINE);
-    print_avec_delai(ANSI_BLUE_TEXT "Bienvenue dans 'Licence vs Étudiant'. \n\n"ANSI_RESET, 50);
+    printf("\n");
+    animer_attente(1000, CLEAR_LINE);
+    print_avec_delai(ANSI_TEXTE_BLEU_FONCE "Bienvenue dans 'Licence vs Étudiants'. \n\n\n"ANSI_RESET, 50);
+    printf("Vous êtes le responsable de la licence informatique de l'Université PSL - Pixel Science-Logique .\n");
+    printf("blablabla\n\n");
     return;
 }

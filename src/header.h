@@ -12,12 +12,12 @@
 #define NB_EMPLACEMENTS 15
 #define NB_TYPES_ENNEMIS 5
 #define NB_ENNEMIS_MAX 1000
-#define NB_TYPES_TOURELLES 5
+#define NB_TYPES_TOURELLES 6
 // génération de nombres pseudo-aléatoires
 extern int nombreAleatoire;
 
 // couleurs de texte de sortie terminal
-#define RESET "\033[0m"    
+#define ANSI_RESET "\033[0m"    
 #define ROUGE "\033[1;31m"
 #define VERT "\033[1;32m"
 #define JAUNE "\033[1;33m"
@@ -28,16 +28,22 @@ extern int nombreAleatoire;
 #define CLEAR_LINE "\033[K"
 
 
-// couleurs de texte de sortie terminal
-#define RESET "\033[0m"    
-#define ROUGE "\033[1;31m"
-#define VERT "\033[1;32m"
-#define JAUNE "\033[1;33m"
-#define BLEU "\033[1;34m"
-#define MAGENTA "\033[1;35m"
-#define CYAN "\033[1;36m" 
-#define BLANC "\033[1;37m"
-#define CLEAR_LINE "\033[K"
+#define ANSI_TEXTE_BLANC "\033[38;5;15m"
+#define ANSI_TEXTE_BLEU_FONCE "\033[38;5;12m"
+#define ANSI_TEXTE_BLEU_MOYEN "\033[38;5;25m"
+#define ANSI_TEXTE_GRIS "\033[38;5;252m"
+
+#define ANSI_BG_BLEU_SHINY "\033[104m" // bleu éléctrique
+#define ANSI_BG_BLANC "\033[48;5;15m"
+#define ANSI_BG_BLEU_MEGA_LIGHT "\033[48;5;195m"
+#define ANSI_BG_BLEU_CLAIR "\033[48;5;81m" // Steel blue vrmt clair
+//#define ANSI_BG_BLEU_MOYEN_CLAIR "\033[48;5;117m" // sky blue pas trop clair
+#define ANSI_BG_GRIS_CLAIR "\033[48;5;254m"
+#define ANSI_BG_VERT_FONCE "\033[48;5;37m"
+#define ANSI_BG_BLEU_FONCE "\033[48;5;17m" // Navy blue
+#define ANSI_BG_ROUGE "\033[48;5;124m"
+
+
 
 
 /// definition des structures du jeu
@@ -115,7 +121,7 @@ void LibererEnnemis(Etudiant* premier);
 Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur);
 int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur);
 void LibererTourelles(Tourelle* premier);
-Tourelle* AjouterTourelles(Tourelle* premier, Tourelle* dernier, char* ligne_tourelles, int ligne, Erreur* erreur);
+Tourelle* AjouterTourelles(Tourelle* * premier, Tourelle* dernier, char* ligne_tourelles, int ligne, Erreur* erreur);
 // fonctions d'aide
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur);
 void Attendre(int ms);
@@ -127,5 +133,6 @@ void AfficherPlateau(Jeu* jeu);
 // prototypes de visualisation
 void animer_attente(int attente_ms, char *message);
 void print_avec_delai(const char *text, int delai_ms);
+void barre_de_chargement(int ms);
 
 #endif

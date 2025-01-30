@@ -88,6 +88,10 @@ void Attendre(int ms) {
 }
 
 void ChangerLigne(Jeu * jeu, Etudiant* e, int saut) {
+    printf("L'ennemi est à la position %d\n", e->position);
+    if (e == NULL || jeu == NULL || saut == 0) {
+        return;
+    }
     // change la ligne de l'ennemi
     e->ligne += saut;
     // modifie le chaînage de la ligne d'origine
@@ -105,7 +109,7 @@ void ChangerLigne(Jeu * jeu, Etudiant* e, int saut) {
         if (prev_ennemi->ligne == e->ligne) {
             break;
         }
-        prev_ennemi = prev_ennemi->next;
+        prev_ennemi = prev_ennemi->next_line;
     }
     if (!prev_ennemi) {
         return;
@@ -123,7 +127,10 @@ void ChangerLigne(Jeu * jeu, Etudiant* e, int saut) {
 
     // prev_ennemi est maintenant le l'ennemi le plus proche derrière
     // si les positions sont identiques, on décale de 1 tant que la position est occupée
-    while (prev_ennemi && prev_ennemi->position == e->position) {
+
+    
+    while (prev_ennemi && prev_ennemi->position == e->position && prev_ennemi->pointsDeVie >0) {
+        printf("incrémentation de la position \n");
         e->position++;
         devant = prev_ennemi;
         prev_ennemi = prev_ennemi->next_line;
@@ -136,4 +143,6 @@ void ChangerLigne(Jeu * jeu, Etudiant* e, int saut) {
     if (prev_ennemi) {
         prev_ennemi->prev_line = e;
     }
+    printf("L'ennemi a sauté sur la ligne %d\n", e->ligne);
+    printf("L'ennemi est à la position %d\n", e->position);
 }

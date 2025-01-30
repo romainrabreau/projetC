@@ -51,11 +51,17 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
         if ((char)t->type == 'T') {
             // tourelle de type basique
             e->pointsDeVie -= 1;
+            if ((char)e->type == 'S') {
+                e->touche = 1;
+            }
         }
         if ((char)t->type ==  'D' && t->position == e->position - 1) {
             // tourelle diplôme LSO mine
             e->pointsDeVie = 0;
             t->pointsDeVie = 0;
+            if ((char)e->type == 'S') {
+                e->touche = 1;
+            }
         }
         if ((char)t->type == 'B') {
             // tourelle BU mur de défense
@@ -64,6 +70,9 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
         if ((char)t->type == 'P') {
             // tourelle feuille de présence, immobilise l'ennemi pendant 2 tours
             e->immobilisation = 2;
+            if ((char)e->type == 'S') {
+                e->touche = 1;
+            }
     
         }
         if ((char)t->type == 'A') {
@@ -86,14 +95,12 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
                     (e2->position <= t->position + 4) &&
                      e->position > t->position) {
                     e2->pointsDeVie -= 1;
+                    if ((char)e2->type == 'S') {
+                        e2->touche = 1;
+                    }
                 }
                 e2 = e2->next;
             }
-        }
-
-        if ((char)t->type != 'B' && (char)e->type == 'S') {
-            // syndicaliste touché par la tourelle
-            e->touche = 1;
         }
         if (e->pointsDeVie<=0 && (char)e->type != 'S') {
             // on ne supprime pas le syndicaliste pour pouvoir faire avancer les autres
@@ -131,7 +138,7 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
         }
         if ((char)e->type == 'L') {
             // gros dégâts, résistant mais très lent
-            t->pointsDeVie -= 3;
+            t->pointsDeVie -= 2;
         }
         if ((char)e->type == 'F'){
             // fainéant, fait des sauts aléatoires ou ne bouge pas pendant plusieurs tours, résistant
@@ -139,10 +146,6 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
             if (choix == 0) {
                 t->pointsDeVie -= 1;
             }
-        }
-        if ((char)e->type == 'S') {
-            // syndicaliste
-            t->pointsDeVie -= 1;
         }
             
         e = e->next;
@@ -156,6 +159,11 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
     Etudiant* e = jeu->etudiants;
     while (e) {
         // si l'ennemi est mort
+        if ((char)e->type == 'S' && e->pointsDeVie <= 0) {
+            SupprimerEnnemi(jeu, erreur, e);
+            e = e->next;
+            continue;
+        }
         if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS +1) {
             e = e->next;
             continue;
@@ -167,38 +175,46 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         }
         int deplacement = e->vitesse;
 
-        if (e->next_line && (char)e->next_line->type == 'S' && e->next_line->touche == 1) {
+        if ((e->next_line && (char)e->next_line->type == 'S' && e->next_line->touche == 1)) {
             // syndicaliste touché, augmente la vitesse de l'ennemi devant
             deplacement++;
             e->next_line->touche = 0;
             if (e->next_line->pointsDeVie <= 0) {
                 // on supprime le syndicaliste qui est mort à l'étape précédente
+                printf("Le Syndicaliste a été touché par une tourelle et est mort.\n");
                 SupprimerEnnemi(jeu, erreur, e->next_line);
             }
         }
 
         if ((char)e->type == 'F') {
             // Fainéant : comportement aléatoire
-            int choix = rand() % 6; 
-
-            if (choix == 0) {
-                // saute sur la ligne du dessus 
-                if (e->ligne > 1) {
-                    ChangerLigne(jeu, e, -1);
-                    printf("Le Fainéant a sauté sur la ligne du dessus.\n");
-                }
-            } else if (choix == 2) {
-                // saute sur la ligne en dessous d
-                if (e->ligne < NB_LIGNES) {
-                    ChangerLigne(jeu, e, 1);
-                    printf("Le Fainéant a sauté sur la ligne en dessous.\n");
-                }
-            } else {
-                // Ne fait rien (2/3)
-                printf("Le Fainéant reste immobile ce tour.\n");
+            if (e->position == NB_EMPLACEMENTS + 1) {
+                // l'ennemi est sur la case d'apparition
+                deplacement = 1;
             }
+            else {
+                int choix = rand() % 6; 
 
-            e = e->next;  // Passe à l'ennemi suivant
+                if (choix == 0) {
+                    // saute sur la ligne du dessus 
+                    if (e->ligne > 1) {
+                        ChangerLigne(jeu, e, -1);
+                        printf("Le Fainéant a sauté sur la ligne du dessus.\n");
+                    }
+                } else if (choix == 2) {
+                    // saute sur la ligne en dessous d
+                    if (e->ligne < NB_LIGNES) {
+                        ChangerLigne(jeu, e, 1);
+                        printf("Le Fainéant a sauté sur la ligne en dessous.\n");
+                    }
+                } else {
+                    // Ne fait rien (2/3)
+                    printf("Le Fainéant reste immobile ce tour.\n");
+                }
+                printf("position : %d\n", e->position);
+                e = e->next;
+                continue;
+            }
         }
 
 
@@ -208,15 +224,24 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
             // si pour cette tourelle l'ennemi est celui qu'elle devrai attaquer
             if (t1->ligne == e->ligne && t1->pointsDeVie > 0 && t1->position < e->position && e->prev_line == NULL) {
                 if ((char)t1->type == 'R') { // tourelle eduroam
+                    if (e->position == NB_EMPLACEMENTS + 1) {
+                        deplacement = 1;
+                        t1 = t1->next;
+                        continue;
+                    }
                     int choix = rand() % 3;
                     switch (choix) {
                         case 0:
-                            deplacement = 0;
+                            deplacement = 2;
                             break;
                         case 1:
-                            deplacement = 1;
+                            deplacement = 0;
                             break;
                         case 2:
+                            if (e->position == NB_EMPLACEMENTS) {
+                                deplacement = 0;
+                                break;
+                            }
                             deplacement = -1;
                             break;
                     }
@@ -290,9 +315,9 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
         // Clean + Afficher le plateau
         printf("\033[0;0H"); 
         printf("\033[2J");
-        printf("Début du tour %d\n", jeu->tour);
+        printf("\n========== DÉBUT DU TOUR %d ==========\n\n", jeu->tour);
         AfficherPlateau(jeu);
-        printf("Appuyez sur Entrée pour continuer...\n");
+        printf(ANSI_TEXTE_GRIS "Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
         while ((getchar()) != '\n');
 
         ResoudreActionsTourelles(jeu, err);
@@ -307,23 +332,23 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
         if(PartiePerdue(jeu)) {
             printf("\033[0;0H"); 
             printf("\033[2J");
-            printf("Fin de Partie \n");
+            printf(ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC"Fin de Partie" ANSI_RESET "\n");
             AfficherPlateau(jeu);
-            printf("Vous avez perdu... Les étudiants ont pris l'université.\n");
+            print_avec_delai(ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC"Vous avez perdu... Les étudiants ont pris l'université."ANSI_RESET"\n", 50);
             break;
         }
 
         if(PartieGagnee(jeu)) {
             printf("\033[0;0H"); 
             printf("\033[2J");
-            printf("Fin de Partie \n");
+            printf(ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE"Fin de Partie" ANSI_RESET "\n");
             AfficherPlateau(jeu);
-            printf("Bravo, vous avez défendu l'université !\n");
+            print_avec_delai(ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE"Bravo, vous avez défendu l'université !" ANSI_RESET "\n", 50);
             break;
         }
         
         printf("Fin du tour %d\n", jeu->tour);
-        printf("Appuyez sur Entrée pour continuer...\n");
+        printf(ANSI_TEXTE_GRIS"Appuyez sur Entrée pour continuer...\n"ANSI_RESET);
         while ((getchar()) != '\n');
     }
 }

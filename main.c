@@ -8,11 +8,13 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
         return;
     }
 
-    IntroduireJeu(erreur);
+    //IntroduireJeu(erreur);
     if (erreur->statut_erreur==1) {
         return;
     }
-    animer_attente(2000, "Initialisation du jeu en cours ...");
+    printf("     𓀡   Initialisation du jeu en cours ...     \n\n");
+    //barre_de_chargement(2000);
+    // animer_attente(2000, " Initialisation du jeu en cours ...");
     if (fichier_ennemis == NULL) {
         erreur->statut_erreur=1;
         strcpy(erreur->msg_erreur, "le fichier n'a pas pu être ouvert\n");
@@ -34,15 +36,16 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     }
 
     jeu->cagnotte=cagnotte;
-    printf("Cagnotte : %d\n", jeu->cagnotte);
+    jeu->tour=0;
+    printf("\nVous disposez blabla\n\n");
+    printf("Cagnotte : %d\n\n", jeu->cagnotte);
     // on trie le fichier avec les ennemis et on résouts les doublons
     //ResoudreFichier(fichier_ennemis, erreur);
     if (erreur->statut_erreur==1) {
         return;
     }
-    
-    printf("Initialisation des ennemis en cours ...\n");
-    printf("\033[36;47mInitialisation des ennemis en cours ..."RESET"\n");
+
+    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "  ❃  Initialisation des ennemis en cours ..."ANSI_RESET"\n\n");
 
     Etudiant * etudiants = InitialisationEnnemis(fichier_ennemis, jeu, erreur);
     if (erreur->statut_erreur==1) {
@@ -51,11 +54,21 @@ void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
     // pointe vers le premier ennemi
     jeu->etudiants=etudiants;
 
+    printf("◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆\n");
+
+
+    printf(ANSI_TEXTE_GRIS "Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
+    while ((getchar()) != '\n');
+
     VisualiserEnnemis(jeu->etudiants, erreur);
     if (erreur->statut_erreur==1) {
         return;
     }
-    printf("\033[36;47mInitialisation des tourelles en cours ..."RESET"\n");
+
+    printf(ANSI_TEXTE_GRIS"Appuyez sur Entrée pour continuer...\n"ANSI_RESET);
+    while ((getchar()) != '\n');
+   
+    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "  ❃  Initialisation des tourelles en cours ..."ANSI_RESET"\n\n");
 
     Tourelle * tourelles = InitialisationTourelles(&jeu->cagnotte, erreur);
     if (erreur->statut_erreur==1) {
@@ -81,8 +94,8 @@ int main(int argc, char *argv[]) {
         printf("assurez-vous d'avoir entré exactement un nom de fichier\n");
         return 1;
     }
-    char *test = strstr(argv[1], ".txt");
-    if (strstr(test, ".txt")==NULL) {
+    char len = strlen(argv[1]);
+    if (len < 4 || strcmp(argv[1] + len - 4, ".txt") != 0) {
         printf("assurez-vous d'avoir entré un nom de fichier se terminant par .txt\n");
         return 1;
     }
@@ -96,12 +109,13 @@ int main(int argc, char *argv[]) {
     Erreur erreur;
     erreur.statut_erreur = 0;
     Jeu jeu;
+
     // initialisation de la graine pour les fonctions aléatoires
     srand((unsigned int)(uintptr_t)&erreur);
     InitialiserJeu(&erreur, &jeu, fichier_ennemis);
     if (erreur.statut_erreur==1) {
         fclose(fichier_ennemis);
-        printf("%s", erreur.msg_erreur);
+        printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "%s" ANSI_RESET, erreur.msg_erreur);
         LibererJeu(&jeu);
         return 1;
     }
@@ -110,7 +124,7 @@ int main(int argc, char *argv[]) {
     JouerPartie(&jeu, &erreur);
 
     if (erreur.statut_erreur == 1) {
-        printf("%s", erreur.msg_erreur);
+        printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "%s" ANSI_RESET, erreur.msg_erreur);
     }
 
     LibererJeu(&jeu);
