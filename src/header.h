@@ -6,13 +6,6 @@
 #include <limits.h>
 #include <unistd.h>
 #include <dirent.h>
-#include <sys/file.h>
-#include <sys/stat.h>
-#include <sys/ioctl.h>
-#include <errno.h>
-#include <time.h>
-#include <fcntl.h>
-#include <ctype.h>
 
 
 #define HEADER_H

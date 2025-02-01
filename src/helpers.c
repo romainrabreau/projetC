@@ -212,51 +212,72 @@ void LibererNomsFormates(char** noms) {
     free(noms);
 }
 
+// Cette fonction permet à l'utilisateur de choisir un leaderboard à afficher.
+// 1) On ouvre le dossier "data_leaderboard" qui contient tous les fichiers texte avec les classements pour chaque partie jouée. (via LectureNoms)
+// 2) FormatterNoms créer des options plus lisibles qui seront affichées comme choix grâce à AfficherChoix.
+// 3) On renvoie le choix tapé au clavier par l'utilisateur pour ouvrir le fichier en question !
 void ChoixLeaderboard() {
+    // 1) On ouvre le dossier "data_leaderboard"
     DIR *dossier = opendir("data_leaderboard");
     if (!dossier) { 
         printf("Aucun niveau trouvé.\n"); 
         sleep(1); 
         return; 
     }
+    
+    // Et on en extrait son contenu.
     char **noms = LectureNoms(dossier);
     closedir(dossier);
     if (!noms || !noms[0]) {
-        if(noms) { for (int i = 0; noms[i]; i++) free(noms[i]); free(noms); }
+        if (noms) { 
+            for (int i = 0; noms[i]; i++) 
+                free(noms[i]); 
+            free(noms); 
+        }
         printf("Aucun leaderboard disponible.\n");
         sleep(1);
         return;
     }
 
+    // 2) On formate les noms lus pour les afficher en options de façon plus digeste
     char **options = FormatterNoms(noms);
     int count = 0;
-    while (options[count]) count++;
+    while (options[count])
+        count++;
+
+    // Ajout de l'option "Retour au menu" à la fin du tableau des options
     options = realloc(options, (count + 2) * sizeof(char *));
     options[count] = strdup("Retour au menu");
     options[count + 1] = NULL;
     count++;
 
+    // Pour chaque option, on retire le suffixe " leaderboard" car tous les fichiers l'ont
     for (int i = 0; i < count; i++) {
         char *pos = strstr(options[i], " leaderboard");
-        if (pos) *pos = '\0';
+        if (pos)
+            *pos = '\0';
     }
 
-    struct winsize w;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-    int terminal_width = (w.ws_col > 0) ? w.ws_col : 80;
+    // Utilise une largeur de terminal par défaut (80 colonnes) pour calculer l'espacement
+    int terminal_width = 80;
     int padding = (terminal_width - 50) / 2;
-    if (padding < 0) padding = 0;
+    if (padding < 0)
+        padding = 0;
 
+    // Affiche le titre du menu du leaderboard avec mise en forme ANSI et 7 tabulations simulées par padding
     printf("%*s\033[36m▲▼▲▼▲ CHOIX DU LEADERBOARD ▲▼▲▼▲\033[0m\n\n", padding - 5, "");
     int choix = AfficherChoix(options, count);
     
+    // Si l'utilisateur choisit "Retour au menu"
     if (choix == count - 1) {
         LibererNomsFormates(options);
-        for (int i = 0; noms[i]; i++) free(noms[i]);
+        for (int i = 0; noms[i]; i++) 
+            free(noms[i]);
         free(noms);
         return;
     }
     
+    // Si un leaderboard a été choisi, initialise une structure de jeu simple et affiche le leaderboard correspondant
     if (choix >= 0 && choix < count - 1 && noms[choix]) {
         Jeu jeu;
         memset(&jeu, 0, sizeof(Jeu));
@@ -264,11 +285,12 @@ void ChoixLeaderboard() {
         AfficherLeaderboard(&jeu);
     }
     
+    // Libère la mémoire allouée pour les options et les noms
     LibererNomsFormates(options);
-    for (int i = 0; noms[i]; i++) free(noms[i]);
+    for (int i = 0; noms[i]; i++) 
+        free(noms[i]);
     free(noms);
 }
-
 
 char* RecupererNom(const char* chemin) {
     // Cherche le dernier '/' et prend la sous-chaîne suivante
