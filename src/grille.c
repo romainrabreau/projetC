@@ -1,7 +1,8 @@
 #include "header.h"
 
 void AfficherPlateau(Jeu* jeu) {
-    // Tableau tampon pour chaque case, ici on stocke 4 caractères max (ex: "3Z\0")
+    // Tableau pour chaque case, on stocke 4 caractères max (3Z\0)
+
     char plateau[NB_LIGNES][NB_EMPLACEMENTS + 1][4]; // Emplacement supplémentaire pour les zombies arrivant
 
     for(int i = 0; i < NB_LIGNES; i++){
@@ -15,21 +16,20 @@ void AfficherPlateau(Jeu* jeu) {
             }
         }
     }
-    // (On suppose qu’une case ne contient qu’une tourelle ou un ennemi)
+    // une case contient soit une tourelle, soit un ennemi, soit rien
     Tourelle* t = jeu->tourelles;
     while(t){
         int li = t->ligne-1;     // de 0 à NB_LIGNES-1
-        int pos = t->position-1; // 0..NB_EMPLACEMENTS-1
+        int pos = t->position-1; // 0 à NB_EMPLACEMENTS-1
         if(li>=0 && li<NB_LIGNES && pos>=0 && pos<NB_EMPLACEMENTS && t->pointsDeVie>0){
             snprintf(plateau[li][pos], 4, "%d%c", t->pointsDeVie, (char)t->type);
         }
         t = t->next;
     }
 
-    // Place les ennemis, ex: “3Z” si PV=3 et type='Z'
+    // Place les ennemis “3Z” si PV 3 et type Z
     Etudiant* e = jeu->etudiants;
     while(e){
-        // Dans cet exemple, on suppose e->ligne varie de 1..7, on fait -1 pour index
         int li = e->ligne-1; 
         int pos = e->position-1;
         if(li>=0 && li<NB_LIGNES && pos>=0 && pos < NB_EMPLACEMENTS + 1 && e->pointsDeVie>0){
@@ -38,26 +38,27 @@ void AfficherPlateau(Jeu* jeu) {
         e = e->next;
     }
 
-printf("      ");
+printf("               ");
     for (int j = 0; j < NB_EMPLACEMENTS; j++) {
-        // Largeur 3 par colonne, alignée à gauche
+        // largeur 3 par colonne, alignée à gauche
         printf("%-6d", j + 1);
     }
     printf("\n");
 
+    printf("        ");
     for (int j = 0; j < NB_EMPLACEMENTS + 1; j++) {
         printf("------");
     }
     printf("\n");
 
-    // Affichage final
+    // affichage final
     for(int i=0; i<NB_LIGNES; i++){
-        printf("   |  \n");
-        printf("%2d |  ", i + 1);        // Numéro de ligne, ex. “1| “
+        printf("           |  \n");
+        printf("        %2d |  ", i + 1);        // numéro de ligne, aligné à droite
         for(int j=0; j < NB_EMPLACEMENTS + 1; j++){
             printf("%-6s", plateau[i][j]);
         }
-        printf("\n   |  \n");
+        printf("\n           |  \n");
     }
     printf("\n");
 }

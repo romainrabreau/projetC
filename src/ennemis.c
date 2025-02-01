@@ -1,21 +1,14 @@
 #include "header.h"
 
-/*
-à ajouter : 
-type Insomniaque -  I sa vitesse augmente à chaque tour
-type Syndicaliste - S augmente la vitesse des ennemis adjacents lorsqu'il est touché
-type Fainéant - F fait des sauts aléatoires ou ne bouge pas pendant plusieurs tour, forte résistance
-type Hacker - H pirate les tourelles et les désactive pendant un tour
-*/
 
 const TypeEnnemi TYPES_ENNEMIS[] = {
     // symbole, points de vie, vitesse, nom
-    {'Z', 3, 2, "Etudiant"},                // type de base
-    {'L', 9, 1, "Etudiant L1"},             // Gros dégâts, résistant mais très lent
-    {'X', 2, 4, "Etudiant Talent"},         // plus rapide mais moins résistant
-    {'S', 3, 1, "Syndicaliste"}, // augmente la vitesse de l'ennemi devant lorsqu'il est touché
-    {'F', 7, 10, "Fainéant"}, // fait des sauts aléatoires ou ne bouge pas pendant plusieurs tour, résistant, 1 fois
-                            // sur 2 attaque la tourelle, 1 fois sur 3 fait des sauts
+    {'Z', 3, 2, "Étudiant", "Étudiant de base, avance à moitié endormi"},
+    {'E', 8, 1, "Étudiant L1", "Résistant mais aussi le plus lent, fait de gros dégâts sur sa ligne"},
+    {'X', 2, 4, "Étudiant Talent", "Plus rapide, moins résistant"},
+    {'S', 3, 1, "Syndicaliste", "Augmente la vitesse des ennemis adjacents de sa ligne lorsqu'il meurt"},
+    {'F', 6, 3, "Fainéant", "Fait des sauts aléatoires (parfois sur la ligne d'en dessous) ou ne bouge pas pendant plusieurs tours, résistant"},
+    {'D', 6, 1, "Doctorant", "Résistant et soigne les ennemis de 1 PV par tour sur une zone de 3 cases et 3 lignes."}
 };
 
 
@@ -29,6 +22,7 @@ const TypeEnnemi* trouverTypeEnnemi(char symbole) {
     return NULL;
 }
 
+
 // vérifie que le type est dans les types autorisés
 const TypeEnnemi* VerifType(int *tour, int *ligne, char *symbole, Erreur *erreur) {
     const TypeEnnemi* type_ennemi = trouverTypeEnnemi(*symbole);
@@ -40,6 +34,7 @@ const TypeEnnemi* VerifType(int *tour, int *ligne, char *symbole, Erreur *erreur
     return type_ennemi;
 }
 
+
 // on considère que chaque élement dans le fichier d'apparition d'un ennemi est unique et triée par ordre croissant
 // tri d'abord par tour puis par ligne
 Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur) {
@@ -49,14 +44,15 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         return NULL;
     }
 
-    printf("Plusieurs ennemis feront leur apparition au cours de ce jeu : \n\n");
-    for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
-        printf(ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC "%c" ANSI_RESET ": " ANSI_TEXTE_BLEU_FONCE "%s\n"ANSI_RESET, TYPES_ENNEMIS[i].symbole, TYPES_ENNEMIS[i].nom);
-        printf("    ⟡ Points de vie : " ANSI_TEXTE_BLEU_MOYEN "%d\n" ANSI_RESET, TYPES_ENNEMIS[i].pointsDeVie);
-        printf("    ⚡︎ Vitesse : " ANSI_TEXTE_BLEU_MOYEN "%d \n\n" ANSI_RESET, TYPES_ENNEMIS[i].vitesse);
+    printf("    Plusieurs ennemis feront leur apparition au cours de ce jeu : \n\n");
+    for (int i = 0; i < NB_TYPES_ENNEMIS; i++) {
+        printf(ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC "        %c" ANSI_RESET ": " ANSI_TEXTE_BLEU_FONCE "%s\n"ANSI_RESET, TYPES_ENNEMIS[i].symbole, TYPES_ENNEMIS[i].nom);
+        printf("            ⟡ Points de vie : " ANSI_TEXTE_BLEU_MOYEN "%d\n" ANSI_RESET, TYPES_ENNEMIS[i].pointsDeVie);
+        printf("            ⚡︎ Vitesse : " ANSI_TEXTE_BLEU_MOYEN "%d \n" ANSI_RESET, TYPES_ENNEMIS[i].vitesse);
+        printf("            ⊟ Description : " ANSI_TEXTE_BLEU_MOYEN "%s \n\n" ANSI_RESET, TYPES_ENNEMIS[i].description);
     }
     printf("\n");
-    printf("A vous de les arrêter !\n\n");
+    printf("        À vous de les arrêter !\n\n");
 
 
 
@@ -102,7 +98,7 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         
         nouvel_etudiant->vitesse = type->vitesse;
         nouvel_etudiant->immobilisation = 0;
-        nouvel_etudiant->touche = 0;
+        nouvel_etudiant->deplace = 0;
 
         nouvel_etudiant->type = (int)type->symbole;
         nouvel_etudiant->pointsDeVie = type->pointsDeVie;
@@ -173,4 +169,149 @@ void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
     }
     printf("L'ennemi a été supprimé\n");
     free(ennemi);
+}
+
+int ActionFaineant(Jeu* jeu, Etudiant* e) {
+    int choix = rand() % 6; 
+    if (choix == 0) {
+        printf("choix 0\n");
+        // se place derrière son prédecesseur
+        if (e->prev_line) {
+            e->position = e->prev_line->position + 1;
+            return 0;
+        }
+        else return 3;
+        // saute sur la ligne du dessus 
+    } else if (choix == 1) {
+        printf("choix 1\n");
+        // saute sur la ligne en dessous derrière le premier de la ligne
+        if (e->ligne < NB_LIGNES) {
+            // chainage direct de la ligne initiale
+            if (e->prev_line) {
+                e->prev_line->next_line = e->next_line;
+            }
+            if (e->next_line) {
+                e->next_line->prev_line = e->prev_line;
+            }
+            // on place l'ennemi
+            e->prev_line = NULL;
+            e->next_line = NULL;
+            
+            e->ligne= e->ligne + 1;
+
+            Etudiant* curseur = jeu->etudiants;
+            while (curseur) {
+                if (curseur->ligne == e->ligne && curseur->pointsDeVie > 0) {
+                    break;
+                }
+                curseur = curseur->next;
+            }
+            if (!curseur) {
+                printf("il est seul sur la ligne %d\n", e->ligne);
+                return 3;
+            } 
+            if (curseur->position>=e->position) {
+                printf("les ennemis sont trop loin\n");
+                printf("position de l'ennemi derrière : %d\n", curseur->position);
+                e->next_line = curseur;
+                curseur->prev_line = e;
+                return 3;
+            }
+            else {
+                while (curseur->next_line && curseur->next_line->position == curseur->position + 1) {
+                    curseur = curseur->next_line;
+                }
+                e->position = curseur->position + 1;
+                // double chainage
+                e->prev_line = curseur;
+                e->next_line = curseur->next_line;
+                curseur->next_line = e;
+                if (e->next_line) {
+                    e->next_line->prev_line = e;
+                }
+                printf("le fainéant est derrière le premier de la ligne %d\n", e->ligne);
+                return 0;
+            }
+
+            
+        }
+        if (e->ligne == NB_LIGNES) {
+            // se place derrière son prédecesseur
+            if (e->prev_line) {
+                e->position = e->prev_line->position + 1;
+                return 0;
+            }
+            return 3;
+
+        }
+    } else {
+        // ne fait rien (2/3)
+        printf("Le Fainéant reste immobile ce tour.\n");
+        return 0;
+    }
+}
+
+int ActionFaineant2(Jeu* jeu, Etudiant* e) {
+    int choix = rand() % 6; 
+    if (choix == 0) {
+        // 1 fois sur 3 se place derrière son prédecesseur
+        printf("choix 0\n");
+        if (e->prev_line) {
+            e->position = e->prev_line->position + 1;
+            return 0;
+        }
+        else return 3;
+    } else if (choix == 1) {
+        printf("choix 1\n");
+        // 1 fois sur trois saute sur la ligne du dessus si elle est vide
+        if (e->ligne < NB_LIGNES) {
+
+            Etudiant* curseur = jeu->etudiants;
+            while (curseur) {
+                if (curseur->ligne == e->ligne && curseur->pointsDeVie > 0) {
+                    break;
+                }
+                curseur = curseur->next;
+            }
+            if (!curseur) {
+                // chainage direct de la ligne initiale
+                if (e->prev_line) {
+                    e->prev_line->next_line = e->next_line;
+                }
+                if (e->next_line) {
+                    e->next_line->prev_line = e->prev_line;
+                }
+                // on place l'ennemi
+                e->prev_line = NULL;
+                e->next_line = NULL;
+                
+                e->ligne= e->ligne + 1;
+                return 3;
+            } 
+            if (curseur->position>=e->position) {
+                printf("les ennemis sont trop loin\n");
+                printf("position de l'ennemi derrière : %d\n", curseur->position);
+                e->next_line = curseur;
+                curseur->prev_line = e;
+                return 3;
+            }
+            else {
+                return 3;
+            }
+
+            
+        }
+        if (e->ligne == NB_LIGNES) {
+            // se place derrière son prédecesseur
+            if (e->prev_line) {
+                e->position = e->prev_line->position + 1;
+                return 0;
+            }
+            return 3;
+        }
+    } else {
+        // ne fait rien (2/3)
+        printf("Le Fainéant reste immobile ce tour.\n");
+        return 0;
+    }
 }

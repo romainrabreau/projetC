@@ -1,33 +1,25 @@
 #include "header.h"
 
-/*types à ajouter
-diplôme LSO - L : explose au contacte dès que atteinte par un étudiant. détruit immédiatement l'ennemi
-Emanuel Lazard - E : dommage sur trois lignes en mm temps
-BU - B : très résistante, 0 dégats infligés (mais ralenti)
-Feuille de présence - F : immobilise ennemi pendant 2 tours, très cher
-Amphi 4 - A : bloque tous les ennemis de la ligne pendant 1 tour
-eduroam - R : une fois sur trois, l'ennemi recule, avance de 1 , ou avance de 2
-*/
 
 const TypeTourelle TYPES_TOURELLES[] = {
-    // symbole, points de vie, prix, nom
-    {'T', 3, 80, "Tableau noir"},// base
-    {'D', 1, 80, "Diplôme LSO"},
-    {'B', 10, 120, "BU"},
-    {'P', 2, 200, "Feuille de présence"},
-    {'E', 2, 300, "Emmanuel Lazard"},
-    {'R', 1, 120, "Eduroam"}, 
+    // symbole, points de vie, prix, nom, description
+    {'T', 3, 80, "Tableau noir", "Tourelle de base, envoie des craies sur les étudiants"},
+    {'L', 1, 80, "Diplôme LSO", "Tourrelle mine, explose au contact et détruit l'étudiant puis s'auto-détruit"},
+    {'B', 10, 120, "BU", "Maxi mur de livres, ralentit les étudiants"},
+    {'P', 2, 200, "Feuille de présence", "Immobilise l'étudiant pendant 2 tours"},
+    {'E', 2, 300, "Emmanuel Lazard", "Multi-dégâts sur 3 lignes en même temps"},
+    {'R', 1, 160, "Eduroam", "Comportement aléatoire, une fois sur trois, l'ennemi recule, avance de 1, ou avance de 2"},
 };
 
-    // Tableau ASCII Art de l'ordinateur
+    // tableau ASCII Art de l'ordinateur
 const char* ordinateur[] = {
-        "  .-----------------. ",
-        "  |  >_ root@uni    | ",
-        "  |  $ sudo hack    | ",
-        "  |  [############] | ",
-        "  |_________________| ",
-        " /                   \\ ",
-        "/_____________________\\ "
+        "     .-----------------. ",
+        "     |  >_ root@uni    | ",
+        "     |  $ sudo hack    | ",
+        "     |  [############] | ",
+        "     |_________________| ",
+        "    /                   \\ ",
+        "   /_____________________\\ "
 };
 
 const TypeTourelle* trouverTypeTourelle(char symbole) {
@@ -40,18 +32,22 @@ const TypeTourelle* trouverTypeTourelle(char symbole) {
 }
 
 /*
- *  InitialiserTourelles
- *  - Affiche la liste des tourelles disponibles
- *  - Demande à l'utilisateur de positionner ses tourelles
- *  - Retourne la liste chaînée de tourelles créées
+   InitialiserTourelles
+   - Affiche la liste des tourelles disponibles
+   - Demande à l'utilisateur de positionner ses tourelles
+   - Retourne la liste chaînée de tourelles créées
  */
-Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
-        // On stocke d'abord les lignes de texte dédiées aux tourelles.
-    char lignesTourelles[NB_TYPES_TOURELLES * 3][256];
-    int indexLigne = 0;
 
+Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
+
+    // on stocke le tableau d'affichage des caractéristiques, on a 4 lignes par tourelle
+    char lignesTourelles[NB_TYPES_TOURELLES * 4][256];
+
+    int indexLigne = 0;
+    // on remplit le tableau de lignes avec les informations 
     for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
         sprintf(
+            // indexLigne++ incrémente post-affectation
             lignesTourelles[indexLigne++],
             ANSI_BG_BLEU_MEGA_LIGHT "%c" ANSI_RESET " : "
             ANSI_TEXTE_BLEU_FONCE "%s" ANSI_RESET,
@@ -69,25 +65,29 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
             ANSI_TEXTE_BLEU_MOYEN "%d ECTS" ANSI_RESET,
             TYPES_TOURELLES[i].prix
         );
+        sprintf(
+            lignesTourelles[indexLigne++],
+            "    ⊟ Description : "
+            ANSI_TEXTE_BLEU_MOYEN "%s" ANSI_RESET,
+            TYPES_TOURELLES[i].description
+        );
     }
 
-    int nbLignesOrdinateur = sizeof(ordinateur) / sizeof(ordinateur[0]);
+    int nbLignesOrdinateur = 7;
     int nbLignesTourelles = indexLigne;
     int nbLignesMax = (nbLignesOrdinateur > nbLignesTourelles)
                       ? nbLignesOrdinateur : nbLignesTourelles;
-    printf("\n\n");
-    printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n\n\n");
 
-    // On affiche en colonnes : dessin de l'ordinateur à gauche, infos sur les tourelles à droite.
+    printf("\n\n");
+    printf("    Voici les tourelles disponibles ainsi que leurs caractéristiques :\n\n\n");
+    // affichage ASCII Art simultané avec les tourelles
     for (int l = 0; l < nbLignesMax; l++) {
-        // Affichage de la ligne ASCII Art si elle existe
+        // affichage de la ligne ASCII Art ordinateur
         if (l < nbLignesOrdinateur) {
-            printf("%-35s", ordinateur[l]); // Largeur fixe pour aligner
+            printf("%-35s", ordinateur[l]); // largeur fixe pour aligner
         } else {
             printf("%-35s", "");
         }
-
-        // Affichage de la ligne de texte tourelle si elle existe
         if (l < nbLignesTourelles) {
             printf("%s", lignesTourelles[l]);
         }
@@ -106,21 +106,21 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
     printf(ANSI_TEXTE_GRIS "Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
     getchar();
 
-    printf("  𓆉  Certaines tourelles ont des caractéristiques spéciales, notamment : \n\n");
-    printf("blabla tourelles\n");
+    printf("     𓆉  Certaines tourelles ont des caractéristiques spéciales, notamment : \n\n");
+    printf("    blabla tourelles\n");
     printf(ANSI_TEXTE_GRIS "Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
-    printf("Il vous faut maintenant placer les tourellles de défense sur les emplacements de votre choix.\n");
-    printf("Vous avez à défendre %d lignes, avec %d positions par ligne \n\n", NB_LIGNES, NB_EMPLACEMENTS);
+    printf("\n    Il vous faut maintenant placer les tourellles de défense sur les emplacements de votre choix.\n");
+    printf("        Vous avez à défendre %d lignes, avec %d positions par ligne \n\n", NB_LIGNES, NB_EMPLACEMENTS);
 
-    printf("Si vous souhaitez placer des tourelles sur la ligne proposée, entrez [SYMBOLE_X] [EMPLACEMENT_1], [SYMBOLE_Y] [EMPLACEMENT_2], ...\n");
+    printf("        Si vous souhaitez placer des tourelles sur la ligne proposée, entrez [SYMBOLE_X] [EMPLACEMENT_1], [SYMBOLE_Y] [EMPLACEMENT_2], ...\n");
 
-    printf(ANSI_TEXTE_BLEU_FONCE ANSI_BG_BLANC "SYMBOLE_X" ANSI_RESET " doit être un symbole de tourelle valide, et " ANSI_TEXTE_BLEU_FONCE ANSI_BG_BLANC "EMPLACEMENT_i" ANSI_RESET " doit être un entier entre 1 et %d\n", NB_EMPLACEMENTS);
+    printf("        "ANSI_TEXTE_BLEU_FONCE ANSI_BG_BLANC "SYMBOLE_X" ANSI_RESET " doit être un symbole de tourelle valide, et " ANSI_TEXTE_BLEU_FONCE ANSI_BG_BLANC "EMPLACEMENT_i" ANSI_RESET " doit être un entier entre 1 et %d\n", NB_EMPLACEMENTS);
 
-    printf("Par exemple : " ANSI_TEXTE_BLANC ANSI_BG_BLEU_SHINY "➩ A 3, A 5, A 12" ANSI_RESET "\n\n");
+    printf("            Par exemple : " ANSI_TEXTE_BLANC ANSI_BG_BLEU_SHINY "➩ A 3, A 5, A 12" ANSI_RESET "\n\n");
 
-    printf("Sinon, faites "ANSI_TEXTE_BLEU_MOYEN "entrée" ANSI_RESET" pour passer à la ligne suivante\n\n");
-    printf("× Vous ne pouvez pas placer deux tourelles sur le même emplacement\n\n");
-    printf("× Vous ne pouvez pas dépenser plus que votre cagnotte.\n");
+    printf("        Sinon, faites "ANSI_TEXTE_BLEU_MOYEN "entrée" ANSI_RESET" pour passer à la ligne suivante\n\n");
+    printf("    × Vous ne pouvez pas placer deux tourelles sur le même emplacement\n\n");
+    printf("    × Vous ne pouvez pas dépenser plus que votre cagnotte.\n");
 
     Tourelle* premier = NULL;
     Tourelle* dernier = NULL;
@@ -129,23 +129,23 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
 
     for (int i = 1; i <= NB_LIGNES; i++) {
         printf("\n\n");
-        printf("Il vous reste " ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE "%d ECTS" ANSI_RESET" à dépenser.\n", *cagnotte);
+        printf("    Il vous reste " ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE "%d ECTS" ANSI_RESET" à dépenser.\n", *cagnotte);
         printf("\n");
-        printf(ANSI_TEXTE_BLANC ANSI_BG_BLEU_FONCE "Ligne %d :" ANSI_RESET" ", i);
+        printf(ANSI_TEXTE_BLANC ANSI_BG_BLEU_FONCE "    Ligne %d :" ANSI_RESET" ", i);
         char ligne_tourelles[256];
 
         fgets(ligne_tourelles, sizeof(ligne_tourelles), stdin);
-
+        // si aucune tourelle n'est entrée
         if (ligne_tourelles[0] == '\n') {
             continue;
         }
-
+        // vérifie la conformité de l'entrée utilisateur
         cout_total = VerifEntreeLigne(ligne_tourelles, erreur);
         if (cout_total == -1) {
-            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "%s " ANSI_RESET, erreur->msg_erreur);
+            printf(ANSI_TEXTE_BLEU_MOYEN "   %s " ANSI_RESET, erreur->msg_erreur);
+            printf(ANSI_RESET);
             erreur->statut_erreur=0;
-            printf(ANSI_TEXTE_BLEU_FONCE"Veuillez re-placer les tourelles en respectant le format et les symboles" ANSI_RESET);
-            printf(ANSI_RESET" \n");
+            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC"  × Veuillez re-placer les tourelles en respectant le format et les symboles ×   " ANSI_RESET);
             i--;
             continue;
         }
@@ -157,7 +157,7 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
         else {
             printf("Vous avez dépensé " ANSI_BG_BLEU_MEGA_LIGHT "%d ECTS" ANSI_RESET" pour cette ligne\n", cout_total);
             *cagnotte -= cout_total;
-            //met à jour
+            //met à jour le premier et le dernier de la liste chaînée
             dernier = AjouterTourelles(&premier, dernier, ligne_tourelles, i, erreur);
         }
         if (erreur->statut_erreur) {
@@ -171,10 +171,9 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
 int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur) {
     /* vérifie 
     1. La validité des symboles de tourelles
-    2. La validité du numéro de la position (entre 0 et NB_EMPLACEMENTS-1)
+    2. La validité du numéro de la position (entre 1 et NB_EMPLACEMENTS)
     3. Pas de doublons dans les positions
-    4. Les paires sont symbole, position
-    5. Pas de dépassement de la cagnotte
+    4. Les paires sont (symbole, position)
 
     Retourne le nombre d'ECTS dépensés
     */
@@ -190,13 +189,6 @@ int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur) {
     int nb_matchs;
     char* ptr = ligne_tourelles;
     
-    // paire symbole position
-    ////TODO possible, renvoyer l'erreur exacte
-    //if (sscanf(ptr, " %c %d", &symbole, &position) != 2) {
-        //erreur->statut_erreur = 1;
-        //strcpy(erreur->msg_erreur, "La première entrée est invalide\n");
-        //return -1;
-    //}
 
     while ((nb_matchs = sscanf(ptr, " %c %d", &symbole, &position)) == 2) {
         // validité du symbole
@@ -214,6 +206,7 @@ int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur) {
             strcpy(erreur->msg_erreur, "Vous ne pouvez pas placer deux tourelles au même endroit\n");
             return -1;
         }
+        // une tourelle a été placée sur cette position
         positions[position-1] = 1;
         
         // renouvellement du solde
@@ -258,16 +251,16 @@ Tourelle* AjouterTourelles(Tourelle* * premier, Tourelle* dernier, char* ligne_t
     char symbole;
     int position;
     int nb_matchs;
-    // pointeur vers la paire symbole position
+    // pointeur vers la paire symbole positioncourante
     char* ptr = ligne_tourelles;
-    // on trouve la dernière tourelle pour y juxtaposer les nouvelles
-
+    
     while ((nb_matchs = sscanf(ptr, " %c %d", &symbole, &position)) == 2) {
         Tourelle* nouvelle_tourelle = (Tourelle*)malloc(sizeof(Tourelle));
+
         if (nouvelle_tourelle == NULL) {
             erreur->statut_erreur = 1;
-            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC"Erreur d'allocation mémoire\n");
-            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC"Les tourelles ajoutées vont être supprimées\n");
+            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC"      Erreur d'allocation mémoire\n");
+            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC"      Les tourelles ajoutées vont être supprimées\n");
             strcpy(erreur->msg_erreur, "Erreur d'allocation mémoire");
             LibererTourelles(*premier);
             return NULL;

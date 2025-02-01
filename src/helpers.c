@@ -1,16 +1,5 @@
 #include "header.h"
 
-// fonction de tri pour qsort
-int comparerEnnemis(const void* a, const void* b) {
-    // qsort renvoi deux pointeurs void, on les cast en Etudiant
-    const Etudiant* ennemiA = (const Etudiant*)a;
-    const Etudiant* ennemiB = (const Etudiant*)b;
-    if (ennemiA->tour != ennemiB->tour) {
-        return ennemiA->tour - ennemiB->tour;
-    }
-    return ennemiA->ligne - ennemiB->ligne;
-}
-
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     if (fichier_ennemis == NULL) {
         erreur->statut_erreur = 1;
@@ -19,8 +8,9 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     }
 
     // tableau alloué non dynamiquement, pas besoin de free
-    Etudiant ennemis[NB_ENNEMIS_MAX];
-    int nbEnnemis = 0;
+    
+    int ligne_courante = 0;
+    int tour_courant = 0;
 
     char ligne_fichier[256];
     // boucle pour lire les lignes du fichier 
@@ -38,55 +28,30 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
             sprintf(erreur->msg_erreur, "le tour ou la ligne entré(e) est invalide : %d\n", ligne);
             return;
         }
-
-        ennemis[nbEnnemis].tour = tour;
-        ennemis[nbEnnemis].ligne = ligne;
-        ennemis[nbEnnemis].type = type;
-        nbEnnemis++;
-    }
-
-    // tri des ennemis en fonction du tour puis de la ligne
-    qsort(ennemis, nbEnnemis, sizeof(Etudiant), comparerEnnemis);
-
-    rewind(fichier_ennemis);
-
-    int tour_courant = ennemis[0].tour;
-    Etudiant bouges[NB_EMPLACEMENTS]; // tableau pour stocker les ennemis relégués
-    int nb_bouges = 0;
-
-    // gestion des doublons + écriture du nouveau fichier
-    fprintf(fichier_ennemis, "%d %d %c\n", ennemis[0].tour, ennemis[0].ligne, ennemis[0].type);
-    for (int i = 1; i < nbEnnemis; i++) {
-            // Si on change de tour
-        if (ennemis[i].tour > tour_courant) {
-            // On écrit les repoussés qui sont pour ce tour
-            for (int j = 0; j < nb_bouges; j++) {
-                if (bouges[j].ligne < ennemis[i].ligne) {
-                    fprintf(fichier_ennemis, "%d %d %c\n", bouges[j].tour, bouges[j].ligne, bouges[j].type);
-                }
-                else {
-                    fprintf(fichier_ennemis, "%d %d %c\n", ennemis[i].tour, ennemis[i].ligne, ennemis[i].type);
-                }
-            }
-            // On réinitialise la liste des redélégués au tour suivant
-            nb_bouges = 0;
-            tour_courant = ennemis[i].tour;
+        if (tour < tour_courant) {
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "l'apparition des ennemis n'est pas triée par tour\n");
+            return;
         }
-
-        if (ennemis[i].tour == ennemis[i - 1].tour && ennemis[i].ligne == ennemis[i - 1].ligne) {
-            ennemis[i].tour++; // décale le tour de l'ennemi suivant
-            continue;
-            }
-        fprintf(fichier_ennemis, "%d %d %c\n", ennemis[i].tour, ennemis[i].ligne, ennemis[i].type);
+        if (tour == tour_courant && ligne <= ligne_courante) {
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "l'apparition des ennemis n'est pas triée par ligne\n");
+            return;
+        }
+        tour_courant = tour;
+        ligne_courante = ligne;
     }
+
     // remet le curseur au début du fichier
     rewind(fichier_ennemis);
+    fgets(ligne_fichier, sizeof(ligne_fichier), fichier_ennemis);  // skip une ligne (la cagnotte)
+    printf("Le fichier est trié\n");
 }
 
-void Attendre(int ms) {
-    usleep(ms * 1000);  // Pause en millisecondes
-}
 
+
+
+// ne fonctionne pas
 void ChangerLigne(Jeu * jeu, Etudiant* e, int saut) {
     printf("L'ennemi est à la position %d\n", e->position);
     if (e == NULL || jeu == NULL || saut == 0) {
@@ -104,21 +69,27 @@ void ChangerLigne(Jeu * jeu, Etudiant* e, int saut) {
     e->prev_line = NULL;
     e->next_line = NULL;
     //place l'ennemi 
-    Etudiant * prev_ennemi = jeu->etudiants;
-    while (prev_ennemi) {
-        if (prev_ennemi->ligne == e->ligne) {
+    Etudiant * current = jeu->etudiants;
+    while (current) {
+        if (current->ligne == e->ligne) {
             break;
         }
-        prev_ennemi = prev_ennemi->next_line;
+        current = current->next;
     }
-    if (!prev_ennemi) {
+    printf("current est à la position %d\n", current->position);
+    printf("current est à la ligne %d\n", current->ligne);
+    printf("current est de type %c\n", (char)current->type);
+    if (!current) {
+        printf("il est seul sur la ligne %d\n", e->ligne);
+        printf(" est à la position %d\n", e->position);
         return;
     }
 
     Etudiant * devant = NULL;
-    while (prev_ennemi && prev_ennemi->position < e->position) {
-        devant = prev_ennemi;
-        prev_ennemi = prev_ennemi->next_line;
+    while (current && current->position < e->position) {
+        printf("prochain ennemi : %d\n", current->position);
+        devant = current;
+        current = current->next_line;
     } 
     // - 'prev_ennemi' pointe vers le 1er ennemi ayant une position >= e->position
     //   OU bien prev_ennemi est NULL (fin de liste).
@@ -128,20 +99,27 @@ void ChangerLigne(Jeu * jeu, Etudiant* e, int saut) {
     // prev_ennemi est maintenant le l'ennemi le plus proche derrière
     // si les positions sont identiques, on décale de 1 tant que la position est occupée
 
-    
-    while (prev_ennemi && prev_ennemi->position == e->position && prev_ennemi->pointsDeVie >0) {
-        printf("incrémentation de la position \n");
-        e->position++;
-        devant = prev_ennemi;
-        prev_ennemi = prev_ennemi->next_line;
+    printf("current est à la position %d\n", current->position);
+    if (devant) {
+        printf("devant est à la position %d\n", devant->position);
     }
+    while (current && current != e && current->position == e->position && current->pointsDeVie >0) {
+        printf("incrémentation de la position \n");
+        printf("prochaine ennemi type : %c\n", (char)current->type);
+        e->position++;
+        devant = current;
+        current = current->next_line;
+    }
+
     e->prev_line = devant;
-    e->next_line = prev_ennemi;
+    e->next_line = current;
+
+
     if (devant) {
         devant->next_line = e;
     }
-    if (prev_ennemi) {
-        prev_ennemi->prev_line = e;
+    if (current) {
+        current->prev_line = e;
     }
     printf("L'ennemi a sauté sur la ligne %d\n", e->ligne);
     printf("L'ennemi est à la position %d\n", e->position);
