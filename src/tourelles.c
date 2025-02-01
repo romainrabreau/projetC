@@ -8,7 +8,6 @@ const TypeTourelle TYPES_TOURELLES[] = {
     {'E', 2, 150, "Emmanuel Lazard"},   // dégats sur une zone de 3 lignes et 3 positions devant elle
     {'R', 1, 75, "Eduroam"},            // Ralentit un ennemi (vitesse = 1)
     {'F', 2, 300, "Feuille de présence"}, 
-    {'A', 0, 400, "Amphi 4"},           // à tej...
 };
 
 
@@ -21,13 +20,6 @@ const TypeTourelle* trouverTypeTourelle(char symbole) {
     return NULL;
 }
 
-/*
- *  InitialiserTourelles
- *  - Affiche la liste des tourelles disponibles
- *  - Demande à l'utilisateur de positionner ses tourelles
- *  - Retourne la l
- * iste chaînée de tourelles créées
- */
 Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
 
     printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n\n");

@@ -233,52 +233,57 @@ int PartieGagnee(Jeu* jeu) {
 }
 
 void JouerPartie(Jeu* jeu, Erreur* err) {
-    while(255) {
+    while(1) {
         jeu->tour++;
-
         ApparitionEnnemis(jeu, err);
         if(err->statut_erreur) return;
 
-        // Clean + Afficher le plateau
-        printf("\033[0;0H"); 
-        printf("\033[2J");
+        printf("\033[0;0H\033[2J");
         printf("Début du tour %d\n", jeu->tour);
         AfficherPlateau(jeu);
-        printf("Appuyez sur Entrée pour continuer...\n");
-        while ((getchar()) != '\n');
+        printf("Appuyez sur Entrée pour continuer ou tapez 'S' pour sauvegarder et quitter : ");
+        char buffer[10];
+        if (fgets(buffer, sizeof(buffer), stdin)) {
+            if (buffer[0]=='S' || buffer[0]=='s') {
+                SauvegarderPartie(jeu);
+                return;
+            }
+        }
 
         ResoudreActionsTourelles(jeu, err);
         if(err->statut_erreur) return;
-
         ResoudreActionsEnnemis(jeu, err);
         if(err->statut_erreur) return;
-
         DeplacerEnnemis(jeu, err);
         if(err->statut_erreur) return;
 
         if(PartiePerdue(jeu)) {
-            printf("\033[0;0H"); 
-            printf("\033[2J");
+            printf("\033[0;0H\033[2J");
             printf("Fin de Partie \n");
-            jeu->score = 0; // Pour ne pas affecter le leaderboard
+            jeu->score = 0;
             AfficherPlateau(jeu);
             printf("Vous avez perdu... Les étudiants ont pris l'université.\n");
+            while (getchar() != '\n');
             break;
         }
-
         if(PartieGagnee(jeu)) {
-            printf("\033[0;0H"); 
-            printf("\033[2J");
+            printf("\033[0;0H\033[2J");
             printf("Fin de Partie \n");
-            jeu->score += jeu->cagnotte * 3; // constante à modifier si besoin.
+            jeu->score += jeu->cagnotte * 3;
             AfficherPlateau(jeu);
             AddToLeaderboard(jeu);
             printf("Bravo, vous avez défendu l'université !\n");
-            break;
+            while (getchar() != '\n');
+            return;
         }
         
         printf("Fin du tour %d\n", jeu->tour);
-        printf("Appuyez sur Entrée pour continuer...\n");
-        while ((getchar()) != '\n');
+        printf("Appuyez sur Entrée pour continuer ou tapez 'S' pour sauvegarder et quitter : ");
+        if (fgets(buffer, sizeof(buffer), stdin)) {
+            if (buffer[0]=='S' || buffer[0]=='s') {
+                SauvegarderPartie(jeu);
+                return;
+            }
+        }
     }
 }

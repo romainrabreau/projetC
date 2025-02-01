@@ -5,6 +5,14 @@
 #include <string.h>
 #include <limits.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <sys/file.h>
+#include <sys/stat.h>
+#include <sys/ioctl.h>
+#include <errno.h>
+#include <time.h>
+#include <fcntl.h>
+#include <ctype.h>
 
 
 #define HEADER_H
@@ -14,6 +22,15 @@
 #define NB_ENNEMIS_MAX 1000
 #define NB_TYPES_TOURELLES 7
 #define MAX_SCORES 10
+
+extern char pseudo[];
+
+// Couleur de jsp quoi qui étaint dans initialisation.c
+#define ANSI_WHITE_TEXT "\033[97m"
+#define ANSI_BLUE_TEXT "\033[94m"
+#define ANSI_RESET "\033[0m"
+#define ANSI_BLUE_BG "\033[44m"
+#define ANSI_LIGHT_BLUE_BG "\033[104m"
 
 // couleurs de texte de sortie terminal
 #define RESET "\033[0m"    
@@ -98,13 +115,13 @@ typedef struct {
     int cagnotte;
     int score;
     char pseudo[50];
-    char fichier_ennemis[100];
+    char fichier_ennemis[256];
     int tour;
 } Jeu;
 
-//prototypes de fonctions d'introduction 
-void IntroduireJeu(Erreur* erreur);
-void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur);
+// Fonctions du main.c
+char* Menu(void);
+void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau);
 
 // prototypes de fonctions de gestion des ennemis
 const TypeEnnemi* trouverType(char symbole);
@@ -122,19 +139,31 @@ Tourelle* AjouterTourelles(Tourelle* premier, Tourelle* dernier, char* ligne_tou
 // fonctions d'aide
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur);
 void Attendre(int ms);
+char** LectureNoms(DIR* dossier);
+void ChoixLeaderboard();
+char* RecupererNom(const char* chemin);
 
 // Fonctions de scoring
 void AddToScore(Jeu* jeu, Etudiant* ennemi, Erreur* erreur);
 void AddToLeaderboard(Jeu* jeu);
-void AfficherLeaderboard();
+void AfficherLeaderboard(Jeu* jeu);
 
 // prototypes de fonctions de jeu
 void JouerPartie(Jeu* jeu, Erreur* erreur);
 void AfficherPlateau(Jeu* jeu);
 
-// prototypes de visualisation
+// effetsVisuels.c
 void animer_attente(int attente_ms, char *message);
 void print_avec_delai(const char *text, int delai_ms);
+void AfficherTitre();
+void IntroMenu();
+void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur);
+int AfficherChoix(char **options, int n_options);
+char** FormatterNoms(char** noms);
+void LibererNomsFormates(char** noms);
+
+// sauvegarde.c
+void SauvegarderPartie(Jeu* jeu);
 
 // Accès au type des ennemis
 extern const TypeEnnemi TYPES_ENNEMIS[];

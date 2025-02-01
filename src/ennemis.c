@@ -11,7 +11,7 @@ const TypeEnnemi TYPES_ENNEMIS[] = {
     // symbole, points de vie, vitesse, nom
     {'Z', 3, 1, "Etudiant dormeur"},            // type de base
     {'M', 9, 1, "Master"},                      // Gros dégâts mais très lent
-    {'S', 2, 3, "Etudiant Talent sprinteur"},   // plus rapide mais moins résistant
+    {'S', 2, 2, "Etudiant Talent sprinteur"},   // plus rapide mais moins résistant
     {'D', 8, 1, "Doctorant"},                   // Résistant et soigne les ennemis de 1 pv par tour de sa ligne.
     {'A', 4, 1, "Alternant"},                   // Change de ligne une fois dans la partie en sautant aléatoirement sur une des deux lignes adjacentes
 };
