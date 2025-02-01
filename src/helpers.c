@@ -157,54 +157,74 @@ int comparer_niveaux(const void* a, const void* b) {
     return num1 - num2;
 }
 
+// Cette fonction formate un tableau de noms de niveaux pour l'affichage d'options essentiellement.
+// Si un fichier commence par un chiffre, il est considéré comme "Niveau <numéro> : <nom>".
+// Sinon, il est considéré comme un niveau extérieur et est affiché sous la forme "Exterieur : <nom>".
+// Chaque nom est traité pour retirer l'extension ".txt" et remplacer les underscores par des espaces.
+// Extension possible : considérer plus que le premier caractère comme niveau.
+// Extension possible : merge les deux cas avec un numéro ou pas dans une fonction car le processus de parsing est le même.
 char** FormatterNoms(char** noms) {
-    if (!noms) return NULL;
+    if (noms == NULL)
+        return NULL;
     
+    // Calcule le nombre d'éléments dans le tableau
     int count = 0;
-    while (noms[count]) count++;
+    while (noms[count] != NULL)
+        count++;
     
+    // Trie le tableau de noms à l'aide de qsort pour mettre les niveaux dans l'odre (ils commencent par un chiffre entre 1 et 9)
     qsort(noms, count, sizeof(char*), comparer_niveaux);
     
+    // On créer nouveau tableau pour stocker résultats avec malloc car on ne connait pas à l'avance la taille du tableau.
     char** resultats = malloc((count + 1) * sizeof(char*));
-    if (!resultats) return NULL;
+    if (resultats == NULL)
+        return NULL;
     
+    // Traitement des noms 
     for (int i = 0; i < count; i++) {
-        char buffer[256];
-        // Si le nom commence par un chiffre, on attend le format "nb_Nomniveau.txt"
-        if (isdigit((unsigned char)noms[i][0])) {
+        char buffer[250];  // Buffer temporaire pour le nom en cours de formattage
+        
+        // Si le premier caractère est un chiffre on considère que c'est un nievau.
+        if (noms[i][0] >= '0' && noms[i][0] <= '9') {
             int numero;
-            char nom[200];
-            if (sscanf(noms[i], "%d_%199[^.].txt", &numero, nom) == 2) {
-                // Remplacer les underscores par des espaces
-                for (char* p = nom; *p; p++) {
+            char nomTemp[200];
+            if (sscanf(noms[i], "%d_%199[^.].txt", &numero, nomTemp) == 2) {
+                // On remplace chaque underscore dans le nom extrait par un espace
+                for (char* p = nomTemp; *p != '\0'; p++) {
                     if (*p == '_')
                         *p = ' ';
                 }
-                snprintf(buffer, sizeof(buffer), "Niveau %d : %s", numero, nom);
+                // Le format du nom en sortie est "Niveau <numéro> : <nom>".
+                snprintf(buffer, sizeof(buffer), "Niveau %d : %s", numero, nomTemp);
             } else {
-                // En cas d'échec du parsing, on utilise le nom brut
+                // En cas d'échec, on utilise le nom original
                 snprintf(buffer, sizeof(buffer), "%s", noms[i]);
             }
         }
-        // Sinon, le nom ne suit pas le format nb_Nomniveau, on le considère comme extérieur.
+        // Sinon, le nom ne commence pas par un chiffre, on le considère comme 'Extérieur', Cad un niveau charger par l'utilisateur en général.
         else {
-            char nom[200];
-            if (sscanf(noms[i], "%199[^.].txt", nom) == 1) {
-                for (char* p = nom; *p; p++) {
+            char nomTemp[200];
+            if (sscanf(noms[i], "%199[^.].txt", nomTemp) == 1) {
+                for (char* p = nomTemp; *p != '\0'; p++) {
                     if (*p == '_')
                         *p = ' ';
                 }
-                snprintf(buffer, sizeof(buffer), "Exterieur : %s", nom);
+                // Le formate du nom en sotrie est "Exterieur : <nom>"
+                snprintf(buffer, sizeof(buffer), "Exterieur : %s", nomTemp);
             } else {
+                // En cas d'échec du parsing, on utilise le nom original
                 snprintf(buffer, sizeof(buffer), "%s", noms[i]);
             }
         }
+        // Duplique le contenu du buffer et le stocke dans le tableau des résultats
         resultats[i] = strdup(buffer);
     }
+    // Termine le tableau par un pointeur NULL pour indiquer qu'il n'y a plus d'éléments à traiter
     resultats[count] = NULL;
     
     return resultats;
 }
+
 
 void LibererNomsFormates(char** noms) {
     if (!noms) return;
@@ -251,22 +271,15 @@ void ChoixLeaderboard() {
     options[count + 1] = NULL;
     count++;
 
-    // Pour chaque option, on retire le suffixe " leaderboard" car tous les fichiers l'ont
+    // Pour chaque option, on retire le suffixe " leaderboard" car tous les fichiers du repertoire l'ont.
     for (int i = 0; i < count; i++) {
         char *pos = strstr(options[i], " leaderboard");
         if (pos)
             *pos = '\0';
     }
-
-    // Utilise une largeur de terminal par défaut (80 colonnes) pour calculer l'espacement
-    int terminal_width = 80;
-    int padding = (terminal_width - 50) / 2;
-    if (padding < 0)
-        padding = 0;
-
-    // Affiche le titre du menu du leaderboard avec mise en forme ANSI et 7 tabulations simulées par padding
-    printf("%*s\033[36m▲▼▲▼▲ CHOIX DU LEADERBOARD ▲▼▲▼▲\033[0m\n\n", padding - 5, "");
-    int choix = AfficherChoix(options, count);
+    // Affichage graphique des choix + on récupère l'option choisie.
+    printf("\t\t\t\t\t\t\t\033[36m▲▼▲▼▲ CHOIX DU LEADERBOARD ▲▼▲▼▲\033[0m\n\n");
+    int choix = AfficherChoix(options, count);  
     
     // Si l'utilisateur choisit "Retour au menu"
     if (choix == count - 1) {
@@ -277,7 +290,7 @@ void ChoixLeaderboard() {
         return;
     }
     
-    // Si un leaderboard a été choisi, initialise une structure de jeu simple et affiche le leaderboard correspondant
+    // Si un leaderboard a été choisi, on initialise une structure de jeu pour simuler un affichage de leaderboard de fin de partie.
     if (choix >= 0 && choix < count - 1 && noms[choix]) {
         Jeu jeu;
         memset(&jeu, 0, sizeof(Jeu));
@@ -285,7 +298,7 @@ void ChoixLeaderboard() {
         AfficherLeaderboard(&jeu);
     }
     
-    // Libère la mémoire allouée pour les options et les noms
+    // On fini par liberer la mémoire allouée pour les options et les noms
     LibererNomsFormates(options);
     for (int i = 0; noms[i]; i++) 
         free(noms[i]);

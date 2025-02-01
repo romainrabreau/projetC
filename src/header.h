@@ -6,6 +6,8 @@
 #include <limits.h>
 #include <unistd.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 
 #define HEADER_H
