@@ -131,7 +131,7 @@ void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
         strcpy(erreur->msg_erreur, "Erreur d'accès à l'ennemi ou au jeu\n");
     }
 
-    AddToScore(jeu, ennemi, erreur);
+    AjouterAuScore(jeu, ennemi, erreur);
 
     // chainage
     if (ennemi == jeu->etudiants) {

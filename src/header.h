@@ -20,7 +20,7 @@
 #define NB_EMPLACEMENTS 15
 #define NB_TYPES_ENNEMIS 5
 #define NB_ENNEMIS_MAX 1000
-#define NB_TYPES_TOURELLES 7
+#define NB_TYPES_TOURELLES 6
 #define MAX_SCORES 10
 
 extern char pseudo[];
@@ -144,8 +144,8 @@ void ChoixLeaderboard();
 char* RecupererNom(const char* chemin);
 
 // Fonctions de scoring
-void AddToScore(Jeu* jeu, Etudiant* ennemi, Erreur* erreur);
-void AddToLeaderboard(Jeu* jeu);
+void AjouterAuScore(Jeu *jeu, Etudiant *e, Erreur *erreur);
+void AjouterAuLeaderboard(Jeu *jeu, Erreur* erreur);
 void AfficherLeaderboard(Jeu* jeu);
 
 // prototypes de fonctions de jeu
@@ -163,7 +163,8 @@ char** FormatterNoms(char** noms);
 void LibererNomsFormates(char** noms);
 
 // sauvegarde.c
-void SauvegarderPartie(Jeu* jeu);
+void SauvegarderPartie(Jeu* jeu, Erreur* erreur);
+void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save);
 
 // Accès au type des ennemis
 extern const TypeEnnemi TYPES_ENNEMIS[];

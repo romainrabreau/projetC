@@ -128,7 +128,7 @@ char* Menu(void) {
         case 2: { // Reprendre une partie sauvegardée
             DIR *dossier = opendir("Sauvegardes");
             if (!dossier) {
-                printf("\033[31mDossier 'Sauvegardes' introuvable!\033[0m\n");
+                printf("\033[31mDossier 'Sauvegardes' introuvable !\033[0m\n");
                 return NULL;
             }
             char **noms = LectureNoms(dossier);
@@ -181,42 +181,30 @@ int main() {
     while (getchar() != '\n');
 
     while (1) { // Boucle de jeu
-        char* nom_niveau = Menu();
-        if (!nom_niveau) continue;
-        
+        char* cheminPartie = Menu();
+        if (!cheminPartie)
+            continue;
+
         Jeu jeu;
         char chemin[256];
-        strncpy(chemin, nom_niveau, sizeof(chemin) - 1);
+        strncpy(chemin, cheminPartie, sizeof(chemin) - 1);
         chemin[sizeof(chemin) - 1] = '\0';
-        free(nom_niveau);
-        
-        PreparerPartie(&erreur, &jeu, chemin);
+        free(cheminPartie);
+
+        // Si le chemin commence par "Sauvegardes/", il s'agit d'une sauvegarde, sinon c'est un niveau normal.
+        if (strncmp(chemin, "Sauvegardes/", strlen("Sauvegardes/")) == 0)
+            RelancerPartie(&erreur, &jeu, chemin);
+        else
+            PreparerPartie(&erreur, &jeu, chemin);
+
         if (erreur.statut_erreur) {
             printf("\033[31mERREUR: %s\033[0m\n", erreur.msg_erreur);
             LibererJeu(&jeu);
             continue;
         }
-        
+
         JouerPartie(&jeu, &erreur);
 
-        // Par exemple, "Niveau/2_Talents_De_Sprinteur.txt" -> "2_Talents_De_Sprinteur"
-        char* nom_base = RecupererNom(jeu.fichier_ennemis);
-        if (!nom_base) {
-            printf("\033[31mErreur lors de la récupération du nom de fichier\033[0m\n");
-            LibererJeu(&jeu);
-            continue;
-        }
-        
-        // Construit le chemin du leaderboard : "data_leaderboard/<NomFichier>_leaderboard.txt"
-        char cheminLeaderboard[256];
-        snprintf(cheminLeaderboard, sizeof(cheminLeaderboard), "data_leaderboard/%s_leaderboard.txt", nom_base);
-        free(nom_base);
-        
-        // On met à jour le champ fichier_ennemis pour que AfficherLeaderboard() ouvre le bon fichier
-        strncpy(jeu.fichier_ennemis, cheminLeaderboard, sizeof(jeu.fichier_ennemis) - 1);
-        jeu.fichier_ennemis[sizeof(jeu.fichier_ennemis) - 1] = '\0';
-        AfficherLeaderboard(&jeu);
-        
         LibererJeu(&jeu);
         printf("\nAppuyez sur Entrée pour continuer...");
         while (getchar() != '\n');

@@ -233,10 +233,11 @@ int PartieGagnee(Jeu* jeu) {
 }
 
 void JouerPartie(Jeu* jeu, Erreur* err) {
-    while(1) {
+    while (1) {
         jeu->tour++;
         ApparitionEnnemis(jeu, err);
-        if(err->statut_erreur) return;
+        if (err->statut_erreur)
+            return;
 
         printf("\033[0;0H\033[2J");
         printf("Début du tour %d\n", jeu->tour);
@@ -245,45 +246,54 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
         char buffer[10];
         if (fgets(buffer, sizeof(buffer), stdin)) {
             if (buffer[0]=='S' || buffer[0]=='s') {
-                SauvegarderPartie(jeu);
+                SauvegarderPartie(jeu, err);
                 return;
             }
         }
 
         ResoudreActionsTourelles(jeu, err);
-        if(err->statut_erreur) return;
+        if (err->statut_erreur)
+            return;
         ResoudreActionsEnnemis(jeu, err);
-        if(err->statut_erreur) return;
+        if (err->statut_erreur)
+            return;
         DeplacerEnnemis(jeu, err);
-        if(err->statut_erreur) return;
+        if (err->statut_erreur)
+            return;
 
-        if(PartiePerdue(jeu)) {
+        if (PartiePerdue(jeu)) {
             printf("\033[0;0H\033[2J");
-            printf("Fin de Partie \n");
+            printf("Fin de Partie\n");
             jeu->score = 0;
             AfficherPlateau(jeu);
             printf("Vous avez perdu... Les étudiants ont pris l'université.\n");
             while (getchar() != '\n');
             break;
         }
-        if(PartieGagnee(jeu)) {
+        if (PartieGagnee(jeu)) {
             printf("\033[0;0H\033[2J");
-            printf("Fin de Partie \n");
+            printf("Fin de Partie\n");
             jeu->score += jeu->cagnotte * 3;
             AfficherPlateau(jeu);
-            AddToLeaderboard(jeu);
+            AjouterAuLeaderboard(jeu, err);
+            
+            // Construction du chemin du leaderboard à partir du nom de niveau
+            char* nom_base = RecupererNom(jeu->fichier_ennemis);
+            if (nom_base) {
+                char cheminLeaderboard[256];
+                snprintf(cheminLeaderboard, sizeof(cheminLeaderboard),
+                         "data_leaderboard/%s_leaderboard.txt", nom_base);
+                free(nom_base);
+                strncpy(jeu->fichier_ennemis, cheminLeaderboard, sizeof(jeu->fichier_ennemis) - 1);
+                jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
+                AfficherLeaderboard(jeu);
+            }
+            
             printf("Bravo, vous avez défendu l'université !\n");
             while (getchar() != '\n');
             return;
         }
-        
+
         printf("Fin du tour %d\n", jeu->tour);
-        printf("Appuyez sur Entrée pour continuer ou tapez 'S' pour sauvegarder et quitter : ");
-        if (fgets(buffer, sizeof(buffer), stdin)) {
-            if (buffer[0]=='S' || buffer[0]=='s') {
-                SauvegarderPartie(jeu);
-                return;
-            }
-        }
     }
 }
