@@ -43,7 +43,7 @@ printf("               ");
         // largeur 3 par colonne, alignée à gauche
         printf("%-6d", j + 1);
     }
-    printf("\n");
+    printf("        Score : %d\n", jeu->score);
 
     printf("        ");
     for (int j = 0; j < NB_EMPLACEMENTS + 1; j++) {

@@ -137,10 +137,13 @@ void LibererEnnemis(Etudiant* premier) {
 }
 
 void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
+
     if (!ennemi || !jeu) {
         erreur->statut_erreur=1;
-        strcpy(erreur->msg_erreur, "Erreur d'accès à l'ennemi ou au jeu\n");
+        strcpy(erreur->msg_erreur, "Erreur d'accès à la donnée de l'ennemi\n");
     }
+    // comptabiliser ennemi supprimé pour le score
+    AjouterAuScore(jeu, ennemi, erreur);
 
     // chainage
     if (ennemi == jeu->etudiants) {
@@ -172,86 +175,6 @@ void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
 }
 
 int ActionFaineant(Jeu* jeu, Etudiant* e) {
-    int choix = rand() % 6; 
-    if (choix == 0) {
-        printf("choix 0\n");
-        // se place derrière son prédecesseur
-        if (e->prev_line) {
-            e->position = e->prev_line->position + 1;
-            return 0;
-        }
-        else return 3;
-        // saute sur la ligne du dessus 
-    } else if (choix == 1) {
-        printf("choix 1\n");
-        // saute sur la ligne en dessous derrière le premier de la ligne
-        if (e->ligne < NB_LIGNES) {
-            // chainage direct de la ligne initiale
-            if (e->prev_line) {
-                e->prev_line->next_line = e->next_line;
-            }
-            if (e->next_line) {
-                e->next_line->prev_line = e->prev_line;
-            }
-            // on place l'ennemi
-            e->prev_line = NULL;
-            e->next_line = NULL;
-            
-            e->ligne= e->ligne + 1;
-
-            Etudiant* curseur = jeu->etudiants;
-            while (curseur) {
-                if (curseur->ligne == e->ligne && curseur->pointsDeVie > 0) {
-                    break;
-                }
-                curseur = curseur->next;
-            }
-            if (!curseur) {
-                printf("il est seul sur la ligne %d\n", e->ligne);
-                return 3;
-            } 
-            if (curseur->position>=e->position) {
-                printf("les ennemis sont trop loin\n");
-                printf("position de l'ennemi derrière : %d\n", curseur->position);
-                e->next_line = curseur;
-                curseur->prev_line = e;
-                return 3;
-            }
-            else {
-                while (curseur->next_line && curseur->next_line->position == curseur->position + 1) {
-                    curseur = curseur->next_line;
-                }
-                e->position = curseur->position + 1;
-                // double chainage
-                e->prev_line = curseur;
-                e->next_line = curseur->next_line;
-                curseur->next_line = e;
-                if (e->next_line) {
-                    e->next_line->prev_line = e;
-                }
-                printf("le fainéant est derrière le premier de la ligne %d\n", e->ligne);
-                return 0;
-            }
-
-            
-        }
-        if (e->ligne == NB_LIGNES) {
-            // se place derrière son prédecesseur
-            if (e->prev_line) {
-                e->position = e->prev_line->position + 1;
-                return 0;
-            }
-            return 3;
-
-        }
-    } else {
-        // ne fait rien (2/3)
-        printf("Le Fainéant reste immobile ce tour.\n");
-        return 0;
-    }
-}
-
-int ActionFaineant2(Jeu* jeu, Etudiant* e) {
     int choix = rand() % 6; 
     if (choix == 0) {
         // 1 fois sur 3 se place derrière son prédecesseur

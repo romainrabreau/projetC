@@ -1,81 +1,84 @@
 #include "header.h"
 
+char pseudo[50];
 
-// Initialiser structures de données du jeu des tourelles et des ennemis
-void InitialiserJeu(Erreur *erreur, Jeu *jeu, FILE *fichier_ennemis){
-    if (erreur->statut_erreur==1) {
-        return;
-    }
-    IntroduireJeu(erreur);
-    if (erreur->statut_erreur==1) {
-        return;
-    }
-    printf("     𓀡   Initialisation du jeu en cours ...     \n\n");
-    barre_de_chargement(2000);
-    //animer_attente(2000, "     𓀡   Initialisation du jeu en cours ...     \n\n");
-    if (fichier_ennemis == NULL) {
-        erreur->statut_erreur=1;
-        strcpy(erreur->msg_erreur, "le fichier n'a pas pu être ouvert\n");
-        return;
-    }
+
+void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
+    // Vérification des entrées
+    if (erreur->statut_erreur) return;
     if (jeu == NULL) {
-        erreur->statut_erreur=1;
-        strcpy(erreur->msg_erreur, "le jeu n'a pas pu être initialisé\n");
-        return;
-    }
-
-    int cagnotte=0;
-    char newline;
-    // vérifier que la première ligne contient uniquement le solde et le changement de ligne
-    if (fscanf(fichier_ennemis, "%d%c", &cagnotte, &newline) != 2 || newline != '\n') {
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "format de la cagnotte invalide\n");
+        strcpy(erreur->msg_erreur, "Structure de jeu non initialisée");
         return;
     }
 
-    jeu->cagnotte=cagnotte;
-    jeu->tour=0;
-    printf("\n   Vous disposez blabla\n\n");
-
-    // on vérifie que le fichier est trié et sans doublons de position
-    ResoudreFichier(fichier_ennemis, erreur);
-    if (erreur->statut_erreur==1) {
+    // Ouverture du fichier
+    FILE* fichier = fopen(chemin_niveau, "r");
+    if (!fichier) {
+        erreur->statut_erreur = 1;
+        snprintf(erreur->msg_erreur, sizeof(erreur->msg_erreur), 
+                "Impossible d'ouvrire le fichier : %s", chemin_niveau);
         return;
     }
 
-    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "       ❃  Initialisation des ennemis en cours ...         "ANSI_RESET"\n\n");
+    // Stockage du chemin du fichier
+    strncpy(jeu->fichier_ennemis, chemin_niveau, sizeof(jeu->fichier_ennemis) - 1);
+    jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
 
-    Etudiant * etudiants = InitialisationEnnemis(fichier_ennemis, jeu, erreur);
-    if (erreur->statut_erreur==1) {
+    int cagnotte;
+    char newline;
+    // Lecture de la cagnotte
+    AnimerAttente(500, "   Vérification des fonds...");
+    if (fscanf(fichier, "%d%c", &cagnotte, &newline) != 2 || newline != '\n') {
+        fclose(fichier);
+        erreur->statut_erreur = 1;
+        strcpy(erreur->msg_erreur, "Format de cagnotte invalide");
         return;
     }
-    // pointe vers le premier ennemi
-    jeu->etudiants=etudiants;
+    jeu->cagnotte = cagnotte;
+
+    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "       ❃  Détection des ennemis en cours ...         "ANSI_RESET"\n\n");
+
+    Etudiant* etudiants = InitialisationEnnemis(fichier, jeu, erreur);
+    fclose(fichier);
+
+    if (erreur->statut_erreur) return;
+    jeu->etudiants = etudiants;
 
     printf("◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆\n");
 
 
     printf(ANSI_TEXTE_GRIS " Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
-    while ((getchar()) != '\n');
+    getchar();
 
     VisualiserEnnemis(jeu->etudiants, erreur);
-    if (erreur->statut_erreur==1) {
-        return;
-    }
+    if (erreur->statut_erreur) return;
+
 
     printf(ANSI_TEXTE_GRIS" Appuyez sur Entrée pour continuer...\n"ANSI_RESET);
-    while ((getchar()) != '\n');
-   
-    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "       ❃  Initialisation des tourelles en cours ...         "ANSI_RESET"\n\n");
+    getchar();
+    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "       ❃  Configuration des défenses en cours...         "ANSI_RESET"\n\n");
 
-    Tourelle * tourelles = InitialisationTourelles(&jeu->cagnotte, erreur);
-    if (erreur->statut_erreur==1) {
-        return;
-    }
-    // pointe vers la première tourelle
+    Tourelle* tourelles = InitialisationTourelles(&jeu->cagnotte, erreur);
+
+    if (erreur->statut_erreur) return;
     jeu->tourelles = tourelles;
+
+    strncpy(jeu->pseudo, pseudo, sizeof(jeu->pseudo) - 1);
+    jeu->pseudo[sizeof(jeu->pseudo) - 1] = '\0';
+    jeu->score = 0;
+    jeu->tour = 0; 
+    
+    AnimerAttente(500, ANSI_TEXTE_BLEU_FONCE "     Préparation terminée !"ANSI_RESET);
+
+    printf(ANSI_TEXTE_GRIS "\n\n\t\t\t\t\t\t\tAppuyez sur Entrée pour continuer...]" ANSI_RESET "");
+    fflush(stdout);
+    while(getchar() != '\n');
     return;
+
 }
+
+
 
 void LibererJeu(Jeu* jeu) {
     if (jeu == NULL) {
@@ -85,47 +88,169 @@ void LibererJeu(Jeu* jeu) {
     LibererTourelles(jeu->tourelles);
 }
 
-int main(int argc, char *argv[]) {
-    printf("\033[0;0H");
-    printf("\033[2J");
-    if (argc!=2) {
-        printf("    assurez-vous d'avoir entré exactement un nom de fichier\n");
-        return 1;
+
+char* Menu(Erreur* erreur) {    
+    printf("\033[0;0H\033[2J");
+    AfficherTitre();
+    printf("Bienvenue %s !\n\n", pseudo);
+
+    char* options_menu[] = {
+        "Jouer les niveaux", 
+        "Charger une partie", 
+        "Reprendre une partie sauvegardée",
+        "Classements", 
+        "Quitter"
+    };
+    int choix = AfficherChoix(options_menu, 5);
+    AnimerAttente(500, CLEAR_LINE);
+
+    switch(choix) {
+        case 0: { // Jouer les niveaux
+            DIR *dossier = opendir("Niveau");
+            if (!dossier) {
+                printf("\033[31mDossier 'Niveau' introuvable!\033[0m\n");
+                return NULL;
+            }
+            char **noms = LectureNoms(dossier);
+            closedir(dossier);
+            if (!noms) return NULL;
+            char **options = FormatterNoms(noms);
+            int nb_niveaux = 0;
+            while (options[nb_niveaux]) nb_niveaux++;
+            options = realloc(options, (nb_niveaux + 2) * sizeof(char *));
+            options[nb_niveaux] = strdup("Retour");
+            options[nb_niveaux + 1] = NULL;
+            nb_niveaux++;
+            int selection = AfficherChoix(options, nb_niveaux);
+            char *chemin = NULL;
+            if (selection >= 0 && selection < nb_niveaux - 1) {
+                chemin = malloc(strlen("Niveau/") + strlen(noms[selection]) + 1);
+                if (chemin)
+                    sprintf(chemin, "Niveau/%s", noms[selection]);
+            }
+            LibererNomsFormates(options);
+            for (int i = 0; noms[i]; i++) free(noms[i]);
+            free(noms);
+            return chemin;
+        }
+        case 1: { // Charger une partie (saisie manuelle)
+            char buffer[256];
+            printf("Entrez l'adresse de la partie à charger (exemple: Dossier/2_Talents_De_Sprinteur.txt) : ");
+            if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
+                printf("\033[31mErreur de lecture.\033[0m\n");
+                return NULL;
+            }
+            buffer[strcspn(buffer, "\n")] = '\0';
+            if (strlen(buffer) == 0) {
+                printf("\033[31mAdresse vide, retour au menu.\033[0m\n");
+                return NULL;
+            }
+            return strdup(buffer);
+        }
+        case 2: { // Reprendre une partie sauvegardée
+            DIR *dossier = opendir("Sauvegardes");
+            if (!dossier) {
+                printf("\033[31mDossier 'Sauvegardes' introuvable!\033[0m\n");
+                return NULL;
+            }
+            char **noms = LectureNoms(dossier);
+            closedir(dossier);
+            if (!noms || !noms[0]) {
+                if(noms) { for (int i = 0; noms[i]; i++) free(noms[i]); free(noms); }
+                printf("Aucune sauvegarde disponible.\n");
+                sleep(1);
+                return NULL;
+            }
+            char **options = FormatterNoms(noms);
+            int nb_save = 0;
+            while (options[nb_save]) nb_save++;
+            for (int i = 0; i < nb_save; i++) {
+                char *pos = strstr(options[i], "save");
+                if (pos) *pos = '\0';
+            }
+            options = realloc(options, (nb_save + 2) * sizeof(char *));
+            options[nb_save] = strdup("Retour");
+            options[nb_save + 1] = NULL;
+            nb_save++;
+            int selection = AfficherChoix(options, nb_save);
+            char *chemin = NULL;
+            if (selection >= 0 && selection < nb_save - 1) {
+                chemin = malloc(strlen("Sauvegardes/") + strlen(noms[selection]) + 1);
+                if (chemin)
+                    sprintf(chemin, "Sauvegardes/%s", noms[selection]);
+            }
+            LibererNomsFormates(options);
+            for (int i = 0; noms[i]; i++) free(noms[i]);
+            free(noms);
+            return chemin;
+        }
+        case 3: // Classements
+            ChoixLeaderboard(erreur);
+            return NULL;
+        case 4: // Quitter
+            exit(0);
+        default:
+            return NULL;
     }
-    char len = strlen(argv[1]);
-    if (len < 4 || strcmp(argv[1] + len - 4, ".txt") != 0) {
-        printf("    assurez-vous d'avoir entré un nom de fichier se terminant par .txt\n");
-        return 1;
-    }
-    
-    FILE * fichier_ennemis = fopen(argv[1], "r");
-    if (fichier_ennemis == NULL) {
-        printf("    le fichier n'a pas pu être ouvert\n");
-        return 1;
-    }
-    // structure pour conserver le statut et le message d'erreur
+}
+
+int main() {
     Erreur erreur;
     erreur.statut_erreur = 0;
-    Jeu jeu;
 
     // initialisation de la graine pour les fonctions aléatoires
     srand((unsigned int)(uintptr_t)&erreur);
-    
-    InitialiserJeu(&erreur, &jeu, fichier_ennemis);
-    if (erreur.statut_erreur==1) {
-        fclose(fichier_ennemis);
-        printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s" ANSI_RESET, erreur.msg_erreur);
+
+    IntroMenu();
+
+    printf("    𓀡   Entrez votre pseudo : ");
+    scanf("%49s", pseudo);
+    while (getchar() != '\n');
+
+    IntroduireJeu(&erreur);
+
+    // Boucle de parties 
+    while (1) {
+        char* cheminPartie = Menu(&erreur);
+        if (!cheminPartie)
+            continue;
+        if (erreur.statut_erreur) {
+            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s" ANSI_RESET, erreur.msg_erreur);
+            continue;
+        }
+
+        Jeu jeu;
+        char chemin[256];
+        
+        strncpy(chemin, cheminPartie, sizeof(chemin) - 1);
+        chemin[sizeof(chemin) - 1] = '\0';
+        free(cheminPartie);
+
+
+        // deux possibilités : relancer une partie sauvegardée ou bien créer une nouvelle 
+
+        if (strncmp(chemin, "Sauvegardes/", strlen("Sauvegardes/")) == 0)
+            RelancerPartie(&erreur, &jeu, chemin);
+        else
+            PreparerPartie(&erreur, &jeu, chemin);
+
+        if (erreur.statut_erreur==1) {
+            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s" ANSI_RESET, erreur.msg_erreur);
+            LibererJeu(&jeu);
+            continue;
+        }
+
+        JouerPartie(&jeu, &erreur);
+
+        if (erreur.statut_erreur==1) {
+            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s" ANSI_RESET, erreur.msg_erreur);
+            LibererJeu(&jeu);
+            return 1;
+        }
+
         LibererJeu(&jeu);
-        return 1;
+        printf("\nAppuyez sur Entrée pour continuer...");
+        while (getchar() != '\n');
     }
-    fclose(fichier_ennemis);
-
-    JouerPartie(&jeu, &erreur);
-
-    if (erreur.statut_erreur == 1) {
-        printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s" ANSI_RESET, erreur.msg_erreur);
-    }
-
-    LibererJeu(&jeu);
     return 0;
 }

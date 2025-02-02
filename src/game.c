@@ -182,7 +182,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
                 deplacement = 1;
             }
             else {
-                deplacement = ActionFaineant2(jeu, e);
+                deplacement = ActionFaineant(jeu, e);
                 if (deplacement == 0) {
                     e = next;
                     continue;
@@ -281,12 +281,12 @@ int PartieGagnee(Jeu* jeu) {
     return 1;
 }
 
-void JouerPartie(Jeu* jeu, Erreur* err) {
+void JouerPartie(Jeu* jeu, Erreur* erreur) {
     while(255) {
         jeu->tour++;
 
-        ApparitionEnnemis(jeu, err);
-        if(err->statut_erreur) return;
+        ApparitionEnnemis(jeu, erreur);
+        if(erreur->statut_erreur) return;
 
         // afficher le plateau en haut du terminal
         printf("\033[0;0H"); 
@@ -296,30 +296,36 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
         printf(ANSI_TEXTE_GRIS " Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
         while ((getchar()) != '\n');
 
-        ResoudreActionsTourelles(jeu, err);
-        if(err->statut_erreur) return;
+        ResoudreActionsTourelles(jeu, erreur);
+        if(erreur->statut_erreur) return;
 
-        ResoudreActionsEnnemis(jeu, err);
-        if(err->statut_erreur) return;
+        ResoudreActionsEnnemis(jeu, erreur);
+        if(erreur->statut_erreur) return;
 
-        DeplacerEnnemis(jeu, err);
-        if(err->statut_erreur) return;
+        DeplacerEnnemis(jeu, erreur);
+        if(erreur->statut_erreur) return;
 
         if(PartiePerdue(jeu)) {
             printf("\033[0;0H"); 
             printf("\033[2J");
+            jeu->score = 0;
             printf("         "ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC"  Fin de Partie   " ANSI_RESET "\n\n\n");
             AfficherPlateau(jeu);
-            print_avec_delai("\n         "ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC"  Vous avez perdu... Les étudiants ont pris l'université.  "ANSI_RESET"\n", 50);
+            printAvecDelai("\n         "ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC"  Vous avez perdu... Les étudiants ont pris l'université.  "ANSI_RESET"\n", 50);
+            while ((getchar()) != '\n');
             break;
         }
 
         if(PartieGagnee(jeu)) {
             printf("\033[0;0H"); 
             printf("\033[2J");
+            jeu->score += jeu->cagnotte * 3;
             printf("         "ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE"    Fin de Partie   " ANSI_RESET "\n\n\n");
             AfficherPlateau(jeu);
-            print_avec_delai("\n         "ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE"  Bravo, vous avez défendu l'université !  " ANSI_RESET "\n", 50);
+            AjouterAuLeaderboard(jeu, erreur);
+            if (erreur->statut_erreur) return;
+            printAvecDelai("\n         "ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE"  Bravo, vous avez défendu l'université !  " ANSI_RESET "\n", 50);
+            while ((getchar()) != '\n');
             break;
         }
         

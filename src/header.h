@@ -6,6 +6,8 @@
 #include <limits.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 
 #define HEADER_H
@@ -13,6 +15,8 @@
 #define NB_EMPLACEMENTS 15
 #define NB_TYPES_ENNEMIS 6
 #define NB_TYPES_TOURELLES 6
+#define MAX_SCORES 10
+#define NB_NIVEAUX 5
 
 
 // couleurs de texte de sortie terminal
@@ -84,6 +88,9 @@ typedef struct {
     const char* description;
 } TypeTourelle;
 
+extern const TypeEnnemi TYPES_ENNEMIS[];
+extern const TypeTourelle TYPES_TOURELLES[];
+
 typedef struct {
     // pointeur vers la première tourelle
     Tourelle* tourelles;
@@ -91,7 +98,14 @@ typedef struct {
     Etudiant* etudiants;
     int cagnotte;
     int tour;
+    int score;
+    char pseudo[50];
+    char fichier_ennemis[255];
 } Jeu;
+
+// prototypes de fonctions du main
+char* Menu(Erreur* erreur);
+void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau);
 
 //prototypes de fonctions d'introduction 
 void IntroduireJeu(Erreur* erreur);
@@ -103,7 +117,7 @@ const TypeEnnemi* VerifType(int *tour, int *ligne, char *symbole, Erreur *erreur
 Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur);
 void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi);
 void LibererEnnemis(Etudiant* premier);
-int ActionFaineant2(Jeu* jeu, Etudiant* e);
+int ActionFaineant(Jeu* jeu, Etudiant* e);
 
 // protopypes de fonctions de gestion des tourelles
 Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur);
@@ -115,14 +129,34 @@ Tourelle* AjouterTourelles(Tourelle* * premier, Tourelle* dernier, char* ligne_t
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur);
 void Attendre(int ms);
 void ChangerLigne(Jeu * jeu, Etudiant* e, int saut);
+char** LectureNoms(DIR* dossier);
+void ChoixLeaderboard(Erreur* erreur);
+char* RecupererNom(const char* chemin);
 
 // prototypes de fonctions de jeu
 void JouerPartie(Jeu* jeu, Erreur* erreur);
 void AfficherPlateau(Jeu* jeu);
 
 // prototypes de visualisation
-void animer_attente(int attente_ms, char *message);
-void print_avec_delai(const char *text, int delai_ms);
-void barre_de_chargement(int ms);
+void AnimerAttente(int attente_ms, char *message);
+void printAvecDelai(const char *text, int delai_ms);
+void BarreChargement(int ms);
+void AfficherTitre();
+void IntroMenu();
+
+
+void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur);
+int AfficherChoix(char **options, int n_options);
+char** FormatterNoms(char** noms);
+void LibererNomsFormates(char** noms);
+
+// prototypes de fonctions de score
+void AjouterAuScore(Jeu *jeu, Etudiant *e, Erreur *erreur);
+void AjouterAuLeaderboard(Jeu *jeu, Erreur* erreur);
+void AfficherLeaderboard(char *cheminFichier, Erreur* erreur);
+
+// prototypes de fonctions de sauvegarde de partie
+void SauvegarderPartie(Jeu* jeu, Erreur* erreur);
+void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save);
 
 #endif
