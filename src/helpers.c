@@ -6,32 +6,33 @@
  En cas d'erreur, la structure Erreur est renseignée et la fonction retourne NULL.
  */
 char (*LectureNoms(char *dossierChemin, int *nb, Erreur *err))[MAX_NAME_LEN] {
-    static char noms_static[MAX_NIVEAUX][MAX_NAME_LEN];
+    static char noms[MAX_NIVEAUX][MAX_NAME_LEN];
     *nb = 0;
 
-    DIR *dossier = opendir(dossierChemin);
-    if (dossier == NULL) {
+    DIR *dir = opendir(dossierChemin);
+    if (!dir) {
         if (err) {
             snprintf(err->msg_erreur, sizeof(err->msg_erreur),
                      "Impossible d'ouvrir le dossier %s.", dossierChemin);
             err->statut_erreur = 1;
         }
-        *nb = 0;
         return NULL;
     }
-
+    // Parcourt les fichiers .txt (ignore . et .. et ne se soucie pas du type)
     struct dirent *ent;
-    while ((ent = readdir(dossier)) != NULL && (*nb) < MAX_NIVEAUX) {
-        if (ent->d_type == DT_REG) {
-            int len = strlen(ent->d_name);
-            if (len > 4 && strcmp(ent->d_name + len - 4, ".txt") == 0) {
-                strncpy(noms_static[*nb], ent->d_name, MAX_NAME_LEN - 1);
-                noms_static[*nb][MAX_NAME_LEN - 1] = '\0';
-                (*nb)++;
-            }
+    while ((ent = readdir(dir)) && *nb < MAX_NIVEAUX) {
+        // Ignore '.' et '..'
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+            continue;
+        }
+        int len = strlen(ent->d_name);
+        if (len > 4 && strcmp(ent->d_name + len - 4, ".txt") == 0) {
+            strncpy(noms[*nb], ent->d_name, MAX_NAME_LEN - 1);
+            noms[*nb][MAX_NAME_LEN - 1] = '\0';
+            (*nb)++;
         }
     }
-    closedir(dossier);
+    closedir(dir);
 
     if (*nb == 0) {
         if (err) {
@@ -41,7 +42,7 @@ char (*LectureNoms(char *dossierChemin, int *nb, Erreur *err))[MAX_NAME_LEN] {
         }
         return NULL;
     }
-    return noms_static;
+    return noms;
 }
 
 /*
@@ -148,25 +149,26 @@ void ChoixLeaderboard(Erreur *err) {
     }
 }
 
-/*
- Récupère le nom de fichier à partir d'un chemin complet.
- La fonction cherche le dernier '/' et copie la sous-chaîne suivante dans un buffer statique.
- Ensuite, elle retire l'extension (la dernière occurrence de '.').
- Cette fonction n'utilise pas d'allocation dynamique.
- */
-char* RecupererNom(const char* chemin) {
-    static char copie[MAX_NAME_LEN];
-    const char* nom = strrchr(chemin, '/');
-    if (!nom) {
+// Récupère le nom de fichier à partir d'un chemin complet en utilisant un buffer statique ; 
+// retire l'extension (la dernière occurrence de '.') ; 
+// en cas de problème (résultat vide), renseigne la structure Erreur.
+char* RecupererNom(const char* chemin, Erreur *err) {
+    static char copie[MAX_NAME_LEN]; // Buffer statique pour le nom extrait
+    const char* nom = strrchr(chemin, '/'); // Cherche le dernier '/' dans le chemin
+    if (!nom) { // Si aucun '/' n'est trouvé, copie le chemin entier
         strncpy(copie, chemin, MAX_NAME_LEN - 1);
         copie[MAX_NAME_LEN - 1] = '\0';
     } else {
-        nom++; // passe le '/'
+        nom++; // Passe le '/'
         strncpy(copie, nom, MAX_NAME_LEN - 1);
         copie[MAX_NAME_LEN - 1] = '\0';
     }
-    char* point = strrchr(copie, '.');
+    char* point = strrchr(copie, '.'); // Cherche le dernier '.' pour l'extension
     if (point)
-        *point = '\0';
+        *point = '\0'; // Retire l'extension
+    if (strlen(copie) == 0 && err) { // Si le résultat est vide, renseigne la structure Erreur
+        snprintf(err->msg_erreur, sizeof(err->msg_erreur), "Nom de fichier vide après extraction");
+        err->statut_erreur = 1;
+    }
     return copie;
 }

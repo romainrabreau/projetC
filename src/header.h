@@ -124,7 +124,7 @@ void Attendre(int ms);
 char (*LectureNoms(char *dossierChemin, int *nb, Erreur *err))[MAX_NAME_LEN];
 char (*FormatterNoms(char noms[][MAX_NAME_LEN], int nb, Erreur *err))[MAX_NAME_LEN];
 void ChoixLeaderboard(Erreur *err);
-char* RecupererNom(const char* chemin);
+char* RecupererNom(const char* chemin, Erreur* erreur);
 
 /* Fonctions de scoring */
 void AjouterAuScore(Jeu* jeu, Etudiant* e, Erreur* erreur);

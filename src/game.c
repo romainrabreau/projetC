@@ -278,12 +278,10 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
             AjouterAuLeaderboard(jeu, err);
             
             // Construction du chemin du leaderboard à partir du nom de niveau
-            char* nom_base = RecupererNom(jeu->fichier_ennemis);
+            char* nom_base = RecupererNom(jeu->fichier_ennemis, err);
             if (nom_base) {
-                char cheminLeaderboard[256];
-                snprintf(cheminLeaderboard, sizeof(cheminLeaderboard),
-                         "data_leaderboard/%s_leaderboard.txt", nom_base);
-                free(nom_base);
+                char cheminLeaderboard[MAX_NAME_LEN];
+                snprintf(cheminLeaderboard, sizeof(cheminLeaderboard), "data_leaderboard/%s_leaderboard.txt", nom_base);
                 strncpy(jeu->fichier_ennemis, cheminLeaderboard, sizeof(jeu->fichier_ennemis) - 1);
                 jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
                 AfficherLeaderboard(jeu->fichier_ennemis, err);

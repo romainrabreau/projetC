@@ -78,11 +78,8 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, char* chemin_niveau) {
     animer_attente(500, "Préparation terminée !");
 }
 
-/*
- * Affiche un menu principal et renvoie, le chemin
- * de la partie (niveau ou sauvegarde) sélectionné par l'utilisateur.
- * La gestion des erreurs est réalisée via la structure Erreur.
- */
+
+// Affiche le menu principal et renvoie le chemin de la partie sélectionné par l'utilisateur, ou NULL si on affiche les classements.
 char* Menu(Erreur *err) {
     // Effacer l'écran et afficher le titre.
     printf("\033[0;0H\033[2J");
@@ -97,10 +94,10 @@ char* Menu(Erreur *err) {
         "Classements", 
         "Quitter"
     };
-    int choix = AfficherChoix(menu_options, 5, err);
-    animer_attente(500, CLEAR_LINE);
+    int choix = AfficherChoix(menu_options, 5, err); // Donne une liste de choix à l'utilisateurs pour qu'il choisisse une option au clavier.
+    animer_attente(500, CLEAR_LINE); // ces deux fonctions sont dans effetsVisuels.c
     
-    char chemin[MAX_NAME_LEN];
+    static char chemin[MAX_NAME_LEN];
     
     switch(choix) {
         case 0: { // Jouer les niveaux
