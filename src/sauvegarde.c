@@ -1,73 +1,56 @@
 #include "header.h"
 
-// Cette fonction utilitaire extrait le "NomFichier" d'un chemin de sauvegarde
-// Par exemple, pour "Sauvegardes/2_Talents_De_Sprinteur_(Manu)_MaSauvegarde_save.txt", la fonction renvoie "2_Talents_De_Sprinteur"
-char *ExtraireNomFichierSauvegarde(const char *chemin_save, Erreur *erreur) {
+// Cette fonction utilitaire extrait le "NomFichier" d'un chemin de sauvegarde.
+// Par exemple, pour "Sauvegardes/2_Talents_De_Sprinteur_(Manu)_MaSauvegarde_save.txt", la fonction renvoie "2_Talents_De_Sprinteur".
+void ExtraireNomFichierSauvegarde(const char *chemin_save, Erreur *erreur, char *dest) {
     // Cherche le dernier '/' dans le chemin pour obtenir le nom complet du fichier.
-    char *nomComplet = strrchr(chemin_save, '/');
+    const char *nomComplet = strrchr(chemin_save, '/');
     if (!nomComplet)
-        nomComplet = (char *)chemin_save;
+        nomComplet = chemin_save;
     else
-        nomComplet++;
-    
-    // On suppose le format "NomFichier_(Pseudo)_NomAttribué_save.txt", donc on cherche le premier '_' qui sépare le NomFichier du reste.
-    char *posU = strchr(nomComplet, '_');
+        nomComplet++;  // passe le '/'
+
+    // On suppose avoir le format "NomFichier_(Pseudo)_NomAttribué_save.txt"
+    // On cherche le premier '_' qui sépare le NomFichier du reste.
+    const char *posU = strchr(nomComplet, '_');
     if (!posU) {
-        // Aucun '_' trouvé : on retourne une copie de nomComplet sans l'extension
-        char *copie = strdup(nomComplet);
-        if (!copie) {
-            erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Erreur d'allocation dans ExtraireNomFichierSauvegarde");
-            return NULL;
-        }
-        // cherche le dernier '.' pour enlever l'extension
-        char *point = strrchr(copie, '.');
+        // Aucun '_' trouvé : on copie nomComplet sans l'extension.
+        strncpy(dest, nomComplet, MAX_NAME_LEN - 1);
+        dest[MAX_NAME_LEN - 1] = '\0';
+        char *point = strrchr(dest, '.');
         if (point)
             *point = '\0';
-        return copie;
+        return;
     }
-    // Calcule la longueur de la partie du texte avant le premier underscore (soit le NomFichier)
+    // Calcul de la longueur de la partie avant le premier underscore (soit le NomFichier)
     size_t len = posU - nomComplet;
-    char *resultat = (char *)malloc(len + 1);
-    if (!resultat) {
-        erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Erreur d'allocation dans ExtraireNomFichierSauvegarde");
-        return NULL;
-    }
-    strncpy(resultat, nomComplet, len);
-    resultat[len] = '\0';
-    return resultat;
+    if (len > MAX_NAME_LEN - 1)
+        len = MAX_NAME_LEN - 1;
+    strncpy(dest, nomComplet, len);
+    dest[len] = '\0';
 }
 
-// Sauvegarde l'état du jeu dans un fichier texte pour quel'utilisateur reprenne sa partie plus tard.
+
 void SauvegarderPartie(Jeu* jeu, Erreur *erreur) {
-    // On demande à l'utilisateur de nommer sa sauvegarde comme ça il peut en avoir plusieurs pour un même niveau
-    char nomSauvegarde[100];
-    printf("Entrez le nom de sauvegarde :   ");
+    char nomSauvegarde[MAX_NAME_LEN];
+    printf("Entrez le nom de sauvegarde : ");
     if (fgets(nomSauvegarde, sizeof(nomSauvegarde), stdin) == NULL) {
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Mauvais nom de sauvegarde entré");
+        strcpy(erreur->msg_erreur, "Erreur de lecture du nom de sauvegarde.");
         return;
     }
     nomSauvegarde[strcspn(nomSauvegarde, "\n")] = '\0';
-    
-    mkdir("Sauvegardes", 0755); // On teste si le dossier existe, sinon on le créé
 
-    // On isole le nom du nievau pour composer le nom de la sauvegarde (format ci dessous)
-    char *baseName = RecupererNom(jeu->fichier_ennemis);
-    if (!baseName) {
-        erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Erreur lors de la récupération du nom de fichier");
+    mkdir("Sauvegardes", 0755);
+
+    // Utilisation de RecupererNom avec la structure Erreur
+    char *baseName = RecupererNom(jeu->fichier_ennemis, erreur);
+    if (erreur->statut_erreur) {
         return;
     }
-
-    // Format : NomFichier_(Pseudo)_NomAttribué_save.txt, ce qui permet d'être lu par Formatter Noms pour afficher correctement les selections de niveaux ou autres à différents moments.
-    char cheminSauvegarde[250];
-    
+    char cheminSauvegarde[MAX_NAME_LEN];
     snprintf(cheminSauvegarde, sizeof(cheminSauvegarde), "Sauvegardes/%s_(%s)_%s_save.txt", baseName, jeu->pseudo, nomSauvegarde);
-    free(baseName);
 
-    // On écrit dans le fichier texte créé toutes les stats du jeu en cours, selon le format dans les printf.
     FILE *f = fopen(cheminSauvegarde, "w");
     if (!f) {
         erreur->statut_erreur = 1;
@@ -78,20 +61,16 @@ void SauvegarderPartie(Jeu* jeu, Erreur *erreur) {
     fprintf(f, "Cagnotte %d\n", jeu->cagnotte);
     fprintf(f, "Pseudo %s\n", jeu->pseudo);
 
-    // Sauvegarde des tourelles
     int nbTourelles = 0;
     Tourelle *t = jeu->tourelles;
-    // d'abord on parcourt les tourelles pour les compter
     while (t) { nbTourelles++; t = t->next; }
     fprintf(f, "NbTourelles %d\n", nbTourelles);
-    // ensuite une par une pour les sauvegarder dans le fichier txt créé
     t = jeu->tourelles;
     while (t) {
         fprintf(f, "Tourelle %c %d %d %d %d\n", t->type, t->pointsDeVie, t->ligne, t->position, t->prix);
         t = t->next;
     }
 
-    // Sauvegarde des étudiants
     int nbEtudiants = 0;
     Etudiant *e = jeu->etudiants;
     while (e) { nbEtudiants++; e = e->next; }
@@ -113,43 +92,36 @@ void SauvegarderPartie(Jeu* jeu, Erreur *erreur) {
 // Cela permet de ne pas créer un leaderboard doublon car la partie aurait repris avec un nouveau nom...
 // 3) Enfin, le fichier de sauvegarde est supprimé, c'est pour éviter de créer des sauvegardes à l'infini.
 void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
-    if (erreur->statut_erreur)
-        return;
-    if (jeu == NULL) {
-        erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Structure de jeu non initialisée");
+    if (erreur->statut_erreur) return; // Si une erreur est déjà présente, on ne fait rien
+    if (jeu == NULL) { // Vérifie que la structure jeu est initialisée
+        erreur->statut_erreur = 1; // Définit le statut d'erreur
+        strcpy(erreur->msg_erreur, "Structure de jeu non initialisée"); // Copie le message d'erreur
+        return; 
+    }
+    FILE *fichier = fopen(chemin_save, "r"); // Ouvre le fichier de sauvegarde en lecture
+    if (!fichier) { // Si l'ouverture échoue
+        erreur->statut_erreur = 1; // Définit le statut d'erreur
+        snprintf(erreur->msg_erreur, sizeof(erreur->msg_erreur), "Ouverture impossible : %s", chemin_save); // Message d'erreur
         return;
     }
-    // On ouvre le fichier et on lit toutes les stats pour les attribuer à la structure Jeu.
-    FILE *fichier = fopen(chemin_save, "r");
-    if (!fichier) {
-        erreur->statut_erreur = 1;
-        snprintf(erreur->msg_erreur, sizeof(erreur->msg_erreur), "Ouverture impossible de : %s", chemin_save);
+    // Copie initiale du chemin de sauvegarde dans fichier_ennemis (sera mis à jour plus tard)
+    strncpy(jeu->fichier_ennemis, chemin_save, sizeof(jeu->fichier_ennemis) - 1); // Copie le chemin
+    jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0'; // Termine par '\0'
+    
+    if (fscanf(fichier, "Tour %d\n", &jeu->tour) != 1) { // Lit le numéro du tour
+        fclose(fichier); // Ferme le fichier
+        erreur->statut_erreur = 1; // Définit le statut d'erreur
+        strcpy(erreur->msg_erreur, "Format de tour invalide"); // Message d'erreur
         return;
     }
-
-    strncpy(jeu->fichier_ennemis, chemin_save, sizeof(jeu->fichier_ennemis) - 1);
-    jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
-
-    // Lecture du tour courant du jeu ..
-    if (fscanf(fichier, "Tour %d\n", &jeu->tour) != 1) {
-        // on a pas trouvé le nombre correspondant au tour
-        fclose(fichier);
-        erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Format de tour invalide");
-        return;
-    }
-    // ..de la cagnotte..
-    if (fscanf(fichier, "Cagnotte %d\n", &jeu->cagnotte) != 1) {
+    if (fscanf(fichier, "Cagnotte %d\n", &jeu->cagnotte) != 1) { // Lit la cagnotte
         fclose(fichier);
         erreur->statut_erreur = 1;
         strcpy(erreur->msg_erreur, "Format de cagnotte invalide");
         return;
     }
-    // ..du pseudo du joueur qui a fait la partie. On ne reprend pas le pseudo demandé au lancement du code car ce n'est pas lui qui a commencé la partie.
-    {
+    {   // Lit le pseudo sauvegardé et le copie dans jeu->pseudo
         char pseudoSauvegarde[50];
-        // match le format nécessaire pour le pseudo   
         if (fscanf(fichier, "Pseudo %49[^\n]\n", pseudoSauvegarde) != 1) {
             fclose(fichier);
             erreur->statut_erreur = 1;
@@ -159,111 +131,83 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
         strncpy(jeu->pseudo, pseudoSauvegarde, sizeof(jeu->pseudo) - 1);
         jeu->pseudo[sizeof(jeu->pseudo) - 1] = '\0';
     }
-    // On récupère les stats sur les tourelles.
     int nbTourelles;
-    if (fscanf(fichier, "NbTourelles %d\n", &nbTourelles) != 1) {
+    if (fscanf(fichier, "NbTourelles %d\n", &nbTourelles) != 1) { // Lit le nombre de tourelles
         fclose(fichier);
         erreur->statut_erreur = 1;
         strcpy(erreur->msg_erreur, "Format du nombre de tourelles invalide");
         return;
     }
-
     jeu->tourelles = NULL;
     Tourelle *dernierTourelle = NULL;
-
-    for (int i = 0; i < nbTourelles; i++) {
+    for (int i = 0; i < nbTourelles; i++) { // Parcourt toutes les tourelles
         char type;
         int pointsDeVie, ligne, position, prix;
         if (fscanf(fichier, "Tourelle %c %d %d %d %d\n", &type, &pointsDeVie, &ligne, &position, &prix) != 5) {
             fclose(fichier);
-            LibererTourelles(jeu->tourelles);
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "Format d'une tourelle invalide");
             return;
         }
-        Tourelle *nouvelle = malloc(sizeof(Tourelle));
+        Tourelle *nouvelle = malloc(sizeof(Tourelle)); // Alloue la mémoire pour une tourelle (allocation conservée)
         if (!nouvelle) {
-            LibererTourelles(jeu->tourelles);
             fclose(fichier);
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "Erreur d'allocation pour tourelle");
             return;
         }
-        nouvelle->type = type;
-        nouvelle->pointsDeVie = pointsDeVie;
-        nouvelle->ligne = ligne;
-        nouvelle->position = position;
-        nouvelle->prix = prix;
-        nouvelle->next = NULL;
-        if (jeu->tourelles == NULL) 
-            jeu->tourelles = nouvelle;
-        else 
-            dernierTourelle->next = nouvelle;
-
-        dernierTourelle = nouvelle;
+        nouvelle->type = type; nouvelle->pointsDeVie = pointsDeVie; nouvelle->ligne = ligne; nouvelle->position = position; nouvelle->prix = prix; nouvelle->next = NULL; // Initialise la tourelle
+        if (jeu->tourelles == NULL)
+            jeu->tourelles = nouvelle; // Si première tourelle, la rattache à jeu->tourelles
+        else
+            dernierTourelle->next = nouvelle; // Sinon, l'ajoute en fin de liste
+        dernierTourelle = nouvelle; // Met à jour le dernier pointeur
     }
-
-    // On récupère les stats sur les étudiants.
     int nbEtudiants;
-    if (fscanf(fichier, "NbEtudiants %d\n", &nbEtudiants) != 1) {
+    if (fscanf(fichier, "NbEtudiants %d\n", &nbEtudiants) != 1) { // Lit le nombre d'étudiants
         fclose(fichier);
         erreur->statut_erreur = 1;
         strcpy(erreur->msg_erreur, "Format du nombre d'étudiants invalide");
         return;
     }
-
     jeu->etudiants = NULL;
     Etudiant *dernierEtudiant = NULL;
-    for (int i = 0; i < nbEtudiants; i++) {
+    for (int i = 0; i < nbEtudiants; i++) { // Parcourt tous les étudiants
         char type;
         int pointsDeVie, ligne, position, vitesse, tourEnnemi, immobilisation;
-
         if (fscanf(fichier, "Etudiant %c %d %d %d %d %d %d\n",
                    &type, &pointsDeVie, &ligne, &position, &vitesse, &tourEnnemi, &immobilisation) != 7) {
             fclose(fichier);
-            LibererEnnemis(jeu->etudiants);
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "Format d'un étudiant invalide");
             return;
         }
-        Etudiant *nouvel = malloc(sizeof(Etudiant));
+        Etudiant *nouvel = malloc(sizeof(Etudiant)); // Alloue la mémoire pour un étudiant (allocation conservée)
         if (!nouvel) {
             fclose(fichier);
-            LibererEnnemis(jeu->etudiants);
             erreur->statut_erreur = 1;
             strcpy(erreur->msg_erreur, "Erreur d'allocation pour étudiant");
             return;
         }
-        nouvel->type = type;
-        nouvel->pointsDeVie = pointsDeVie;
-        nouvel->ligne = ligne;
-        nouvel->position = position;
-        nouvel->vitesse = vitesse;
-        nouvel->tour = tourEnnemi;
-        nouvel->immobilisation = immobilisation;
-        nouvel->next = NULL;
-        nouvel->next_line = NULL;
-        nouvel->prev_line = NULL;
-
+        nouvel->type = type; nouvel->pointsDeVie = pointsDeVie; nouvel->ligne = ligne; nouvel->position = position; nouvel->vitesse = vitesse; nouvel->tour = tourEnnemi; nouvel->immobilisation = immobilisation;
+        nouvel->next = NULL; nouvel->next_line = NULL; nouvel->prev_line = NULL; // Initialise l'étudiant
         if (jeu->etudiants == NULL)
-            jeu->etudiants = nouvel;
+            jeu->etudiants = nouvel; // Si premier étudiant, rattache à jeu->etudiants
         else
-            dernierEtudiant->next = nouvel;
-        dernierEtudiant = nouvel;
+            dernierEtudiant->next = nouvel; // Sinon, ajoute en fin de liste
+        dernierEtudiant = nouvel; // Met à jour le dernier pointeur
     }
+    fclose(fichier); // Ferme le fichier après lecture
+    jeu->score = 0; // Initialise le score
+    AnimerAttente(500, "Partie relancée !"); // Animation de fin de relance
 
-    fclose(fichier);
-    jeu->score = 0;
-    AnimerAttente(500, "   Partie relancée !");
-
-    // Mise à jour de fichier_ennemis pour ne conserver que le NomFichier extrait de la sauvegarde.
-    // Cela permet de ne pas créer un leaderboard doublon car la partie aurait repris avec un nouveau nom...
-    char *nomFichierSauvegarde = ExtraireNomFichierSauvegarde(chemin_save, erreur);
-
-    strncpy(jeu->fichier_ennemis, nomFichierSauvegarde, sizeof(jeu->fichier_ennemis) - 1);
-    jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
-    free(nomFichierSauvegarde);
-
-    // Suppression du fichier de sauvegarde une fois la partie relancée pour ne pas en créer trop
-    remove(chemin_save);
+    // Mise à jour de fichier_ennemis : on extrait le nom du fichier sans répertoires pour éviter un doublon dans le leaderboard
+    {  
+        char nomFichierSauvegarde[MAX_NAME_LEN] = {0}; // Déclare un buffer statique pour le nom extrait
+        ExtraireNomFichierSauvegarde(chemin_save, erreur, nomFichierSauvegarde); // Remplit le buffer (fonction modifiée pour utiliser un buffer)
+        strncpy(jeu->fichier_ennemis, nomFichierSauvegarde, sizeof(jeu->fichier_ennemis) - 1); // Copie le nom extrait dans jeu->fichier_ennemis
+        jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0'; // Termine par '\0'
+    }
+    
+    remove(chemin_save); // Supprime le fichier de sauvegarde pour éviter des sauvegardes infinies
 }

@@ -31,7 +31,7 @@ void BarreChargement(int ms) {
     int steps = LONG_BARRE;
     int step_time = ms / steps;  // time par tour de barre
 
-    printf("|");  // début de la barre
+    printf("\t|");  // début de la barre
     for (int i = 0; i < LONG_BARRE; i++) {
         printf(" "); // au début, la barre est vide
     }
@@ -40,7 +40,7 @@ void BarreChargement(int ms) {
     fflush(stdout); // envoie la sortie sur le terminal
 
     for (int i = 0; i <= LONG_BARRE; i++) {
-        printf("\r|");  // retourne au début de la ligne
+        printf("\r\t|");  // retourne au début de la ligne
         for (int j = 0; j < i; j++) {
             printf(ANSI_BG_BLEU_CLAIR " " ANSI_RESET);  // bloc de couleur de chargement
         }
@@ -54,14 +54,6 @@ void BarreChargement(int ms) {
     printf("\n"); 
 }
 
-void IntroMenu() {
-    AnimerAttente(100, CLEAR_LINE);
-    printAvecDelai(ANSI_TEXTE_BLEU_FONCE "Bienvenue dans 'Licence vs Étudiants'.\n" ANSI_RESET, 50);
-    AnimerAttente(100, CLEAR_LINE);
-    printAvecDelai(ANSI_TEXTE_BLEU_FONCE "Chargement du Menu... \n" ANSI_RESET, 50);
-    AnimerAttente(200, CLEAR_LINE);
-}
-
 void AfficherTitre() {
     printf(ANSI_BG_BLEU_SHINY ANSI_TEXTE_BLANC"                ██╗     ██╗ ██████╗███████╗███╗   ██╗ ██████╗███████╗    ██╗   ██╗███████╗    ███████╗████████╗██╗   ██╗██████╗ ██╗ █████╗ ███╗   ██╗████████╗███████╗                \n");
     printf("                ██║     ██║██╔════╝██╔════╝████╗  ██║██╔════╝██╔════╝    ██║   ██║██╔════╝    ██╔════╝╚══██╔══╝██║   ██║██╔══██╗██║██╔══██╗████╗  ██║╚══██╔══╝██╔════╝                \n");
@@ -72,14 +64,15 @@ void AfficherTitre() {
     printf("\n");
 }
 
-int AfficherChoix(char **options, int n_options) {
+int AfficherChoix(char options[][MAX_NAME_LEN], int n_options, Erreur *err) {
     // à partir d'un tableau d'options affiche un menu et renvoie le choix de l'utilisateur
     int choix = -1;
 
     while (1) {
+        // calcul de la longueur maximale des options, pour aligner le menu
         int max_length = 0;
         for (int i = 0; i < n_options; ++i) {
-            int len = strlen(options[i]) + 3;
+            int len = strlen(options[i]) + 3; // 3 caractères de marge
             if (len > max_length) {
                 max_length = len;
             }
@@ -95,7 +88,7 @@ int AfficherChoix(char **options, int n_options) {
         // Liste des options
         for (int i = 0; i < n_options; ++i) {
             printf("\t\t\t\t\t\t\t");
-            printf("   %d. %s\n", i + 1, options[i]);
+            printf(ANSI_TEXTE_BLEU_MOYEN "   %d. %s\n"ANSI_RESET, i + 1, options[i]);
         }
 
         // barrière du bas
@@ -106,19 +99,19 @@ int AfficherChoix(char **options, int n_options) {
         printf("---\n\n");
 
         // Lecture du choix
-        printf("\t\t\t\t\t\t\tVeuillez sélectionner une option (1-%d) : ", n_options);
+        printf("\t\t\t\t\t\t\t"ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_MOYEN "Veuillez sélectionner une option (1-%d) : " ANSI_RESET, n_options);
 
-        int choisi;
-        while (1) {
-            scanf("%d", &choisi);
-            if (choisi >= 1 && choisi <= n_options) {
-                printf("\n");
-                return choisi - 1;
-            } else {
-                printf("\t\t\t\t\t\t\tOption invalide. Veuillez entrer un nombre entre 1 et %d.\n", n_options);
-            }
+        int entree;
+        
+        while (scanf("%d", &entree) != 1 || entree < 1 || entree > n_options) {
+            printf("\t\t\t\t\t\t\tOption invalide. Veuillez entrer un nombre entre 1 et %d.\n", n_options);
+            fflush(stdin);
         }
+        choix = entree - 1;
+        fflush(stdin);
+        break; 
     }
+    return choix;
 }
 
 

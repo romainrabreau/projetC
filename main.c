@@ -2,9 +2,15 @@
 
 char pseudo[50];
 
-
+/*
+ Prépare la partie à partir du fichier de niveau indiqué par chemin_niveau.
+ 1) Ouvre le fichier du niveau et lit la cagnotte.
+ 2) Initialise les ennemis via InitialisationEnnemis.
+ 3) Affiche les ennemis via VisualiserEnnemis.
+ 4) Initialise les tourelles via InitialisationTourelles.
+ Le chemin du fichier est également sauvegardé dans la structure de jeu.
+ */
 void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
-    // Vérification des entrées
     if (erreur->statut_erreur) return;
     if (jeu == NULL) {
         erreur->statut_erreur = 1;
@@ -12,12 +18,11 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
         return;
     }
 
-    // Ouverture du fichier
+    // on lit le fichier de niveau fourni
     FILE* fichier = fopen(chemin_niveau, "r");
     if (!fichier) {
         erreur->statut_erreur = 1;
-        snprintf(erreur->msg_erreur, sizeof(erreur->msg_erreur), 
-                "Impossible d'ouvrire le fichier : %s", chemin_niveau);
+        snprintf(erreur->msg_erreur, sizeof(erreur->msg_erreur), "Impossible d'ouvrire le fichier : %s", chemin_niveau);
         return;
     }
 
@@ -28,7 +33,7 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
     int cagnotte;
     char newline;
     // Lecture de la cagnotte
-    AnimerAttente(500, "   Vérification des fonds...");
+    AnimerAttente(1000, "   Vérification des fonds...");
     if (fscanf(fichier, "%d%c", &cagnotte, &newline) != 2 || newline != '\n') {
         fclose(fichier);
         erreur->statut_erreur = 1;
@@ -37,8 +42,14 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
     }
     jeu->cagnotte = cagnotte;
 
-    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "       ❃  Détection des ennemis en cours ...         "ANSI_RESET"\n\n");
+    // Vérification du format du fichier avec ennmis
+    ResoudreFichier(fichier, erreur);
+    if (erreur->statut_erreur) return;
 
+    printf("\t");
+    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "       ❃  Détection des ennemis en cours ...         "ANSI_RESET"\n\n");
+    BarreChargement(1000);  
+    printf("\n\n");
     Etudiant* etudiants = InitialisationEnnemis(fichier, jeu, erreur);
     fclose(fichier);
 
@@ -79,7 +90,6 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
 }
 
 
-
 void LibererJeu(Jeu* jeu) {
     if (jeu == NULL) {
         return;
@@ -88,111 +98,6 @@ void LibererJeu(Jeu* jeu) {
     LibererTourelles(jeu->tourelles);
 }
 
-
-char* Menu(Erreur* erreur) {    
-    printf("\033[0;0H\033[2J");
-    AfficherTitre();
-    printf("Bienvenue %s !\n\n", pseudo);
-
-    char* options_menu[] = {
-        "Jouer les niveaux", 
-        "Charger une partie", 
-        "Reprendre une partie sauvegardée",
-        "Classements", 
-        "Quitter"
-    };
-    int choix = AfficherChoix(options_menu, 5);
-    AnimerAttente(500, CLEAR_LINE);
-
-    switch(choix) {
-        case 0: { // Jouer les niveaux
-            DIR *dossier = opendir("Niveau");
-            if (!dossier) {
-                printf("\033[31mDossier 'Niveau' introuvable!\033[0m\n");
-                return NULL;
-            }
-            char **noms = LectureNoms(dossier);
-            closedir(dossier);
-            if (!noms) return NULL;
-            char **options = FormatterNoms(noms);
-            int nb_niveaux = 0;
-            while (options[nb_niveaux]) nb_niveaux++;
-            options = realloc(options, (nb_niveaux + 2) * sizeof(char *));
-            options[nb_niveaux] = strdup("Retour");
-            options[nb_niveaux + 1] = NULL;
-            nb_niveaux++;
-            int selection = AfficherChoix(options, nb_niveaux);
-            char *chemin = NULL;
-            if (selection >= 0 && selection < nb_niveaux - 1) {
-                chemin = malloc(strlen("Niveau/") + strlen(noms[selection]) + 1);
-                if (chemin)
-                    sprintf(chemin, "Niveau/%s", noms[selection]);
-            }
-            LibererNomsFormates(options);
-            for (int i = 0; noms[i]; i++) free(noms[i]);
-            free(noms);
-            return chemin;
-        }
-        case 1: { // Charger une partie (saisie manuelle)
-            char buffer[256];
-            printf("Entrez l'adresse de la partie à charger (exemple: Dossier/2_Talents_De_Sprinteur.txt) : ");
-            if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-                printf("\033[31mErreur de lecture.\033[0m\n");
-                return NULL;
-            }
-            buffer[strcspn(buffer, "\n")] = '\0';
-            if (strlen(buffer) == 0) {
-                printf("\033[31mAdresse vide, retour au menu.\033[0m\n");
-                return NULL;
-            }
-            return strdup(buffer);
-        }
-        case 2: { // Reprendre une partie sauvegardée
-            DIR *dossier = opendir("Sauvegardes");
-            if (!dossier) {
-                printf("\033[31mDossier 'Sauvegardes' introuvable!\033[0m\n");
-                return NULL;
-            }
-            char **noms = LectureNoms(dossier);
-            closedir(dossier);
-            if (!noms || !noms[0]) {
-                if(noms) { for (int i = 0; noms[i]; i++) free(noms[i]); free(noms); }
-                printf("Aucune sauvegarde disponible.\n");
-                sleep(1);
-                return NULL;
-            }
-            char **options = FormatterNoms(noms);
-            int nb_save = 0;
-            while (options[nb_save]) nb_save++;
-            for (int i = 0; i < nb_save; i++) {
-                char *pos = strstr(options[i], "save");
-                if (pos) *pos = '\0';
-            }
-            options = realloc(options, (nb_save + 2) * sizeof(char *));
-            options[nb_save] = strdup("Retour");
-            options[nb_save + 1] = NULL;
-            nb_save++;
-            int selection = AfficherChoix(options, nb_save);
-            char *chemin = NULL;
-            if (selection >= 0 && selection < nb_save - 1) {
-                chemin = malloc(strlen("Sauvegardes/") + strlen(noms[selection]) + 1);
-                if (chemin)
-                    sprintf(chemin, "Sauvegardes/%s", noms[selection]);
-            }
-            LibererNomsFormates(options);
-            for (int i = 0; noms[i]; i++) free(noms[i]);
-            free(noms);
-            return chemin;
-        }
-        case 3: // Classements
-            ChoixLeaderboard(erreur);
-            return NULL;
-        case 4: // Quitter
-            exit(0);
-        default:
-            return NULL;
-    }
-}
 
 int main() {
     Erreur erreur;
@@ -212,10 +117,14 @@ int main() {
     // Boucle de parties 
     while (1) {
         char* cheminPartie = Menu(&erreur);
-        if (!cheminPartie)
-            continue;
-        if (erreur.statut_erreur) {
-            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s" ANSI_RESET, erreur.msg_erreur);
+        if (!cheminPartie) {
+            if (erreur.statut_erreur) {
+                printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s\n" ANSI_RESET, erreur.msg_erreur);
+                erreur.statut_erreur = 0;
+            }
+            printf(ANSI_TEXTE_GRIS"\n   Appuyez sur Entrée pour continuer..."ANSI_RESET);
+            fflush(stdout);
+            while(getchar() != '\n');
             continue;
         }
 
@@ -224,7 +133,6 @@ int main() {
         
         strncpy(chemin, cheminPartie, sizeof(chemin) - 1);
         chemin[sizeof(chemin) - 1] = '\0';
-        free(cheminPartie);
 
 
         // deux possibilités : relancer une partie sauvegardée ou bien créer une nouvelle 
@@ -235,21 +143,21 @@ int main() {
             PreparerPartie(&erreur, &jeu, chemin);
 
         if (erreur.statut_erreur==1) {
-            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s" ANSI_RESET, erreur.msg_erreur);
+            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s\n" ANSI_RESET, erreur.msg_erreur);
             LibererJeu(&jeu);
-            continue;
+            return 1;
         }
 
         JouerPartie(&jeu, &erreur);
 
         if (erreur.statut_erreur==1) {
-            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s" ANSI_RESET, erreur.msg_erreur);
+            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "    ×  Erreur : %s\n" ANSI_RESET, erreur.msg_erreur);
             LibererJeu(&jeu);
             return 1;
         }
 
         LibererJeu(&jeu);
-        printf("\nAppuyez sur Entrée pour continuer...");
+        printf(ANSI_TEXTE_GRIS"\nAppuyez sur Entrée pour continuer...\n"ANSI_RESET);
         while (getchar() != '\n');
     }
     return 0;

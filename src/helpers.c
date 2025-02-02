@@ -48,31 +48,49 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     printf("Le fichier est trié\n");
 }
 
-char** LectureNoms(DIR* dossier) {
+
+/* 
+ Parcourt le dossier donné et copie dans un tableau statique les noms des fichiers
+ se terminant par ".txt". Le nombre d'éléments est renvoyé via *nb.
+ En cas d'erreur la fonction retourne NULL.
+ */
+char (*LectureNoms(char *dossierChemin, int *nb, Erreur *err))[MAX_NAME_LEN] {
     // static pour que les tableaux soient conservés entre les appels
-    static char nomsFichiers[100][256];  // tableau de noms de fichiers
-    static char * pointeursFichiers[100];  // tableau de pointeurs vers les noms de fichiers
-    int count = 0;
+    static char noms[MAX_NIVEAUX][MAX_NAME_LEN];
+    *nb = 0;
 
-    struct dirent* ent;
-    rewinddir(dossier); // S'assurer de lire depuis le début
+    DIR *dossier = opendir(dossierChemin);
+    if (!dossier) {
+        err->statut_erreur = 1;
+        snprintf(err->msg_erreur, sizeof(err->msg_erreur), "Impossible d'ouvrir le dossier %s", dossierChemin);
+        return NULL;
+    }
 
-    while ((ent = readdir(dossier)) != NULL && count < 100) {
-        // Vérifier si c'est un fichier .txt
-        if (ent->d_type == DT_REG) { // Fichier régulier
-            const char* nom = ent->d_name;
-            size_t len = strlen(nom);
+    struct dirent *ent;
 
-            if (len > 4 && strcmp(nom + len - 4, ".txt") == 0) {
-                strncpy(nomsFichiers[count], nom, 255);
-                nomsFichiers[count][255] = '\0';
-                pointeursFichiers[count] = nomsFichiers[count];
-                count++;
-            }
+
+    // Parcourt les fichiers .txt (ignore . et .. et ne se soucie pas du type)
+    while ((ent = readdir(dossier)) && *nb < MAX_NIVEAUX) {
+        // Ignore '.' et '..'
+        if (strcmp(ent->d_name, ".") == 0 || strcmp(ent->d_name, "..") == 0) {
+            continue;
+        }
+        // longueur du nom de fichier
+        int len = strlen(ent->d_name);
+        if (len > 4 && strcmp(ent->d_name + len - 4, ".txt") == 0) {
+            strncpy(noms[*nb], ent->d_name, MAX_NAME_LEN - 1);
+            noms[*nb][MAX_NAME_LEN - 1] = '\0';
+            (*nb)++;
+
         }
     }
-    pointeursFichiers[count] = NULL;
-    return pointeursFichiers;
+    closedir(dossier);
+    if (*nb == 0) {
+        err->statut_erreur = 1;
+        strcpy(err->msg_erreur, "Aucun fichier .txt trouvé dans le dossier");
+        return NULL;
+    }
+    return noms;
 }
 
 
@@ -88,74 +106,69 @@ int comparer_niveaux(const void* a, const void* b) {
 }
 
 
-// Cette fonction formate un tableau de noms de niveaux pour l'affichage d'options essentiellement.
-// Si un fichier commence par un chiffre, il est considéré comme "Niveau <numéro> : <nom>".
-// Sinon, il est considéré comme un niveau extérieur et est affiché sous la forme "Exterieur : <nom>".
-// Chaque nom est traité pour retirer l'extension ".txt" et remplacer les underscores par des espaces.
-// Extension possible : considérer plus que le premier caractère comme niveau.
-// Extension possible : merge les deux cas avec un numéro ou pas dans une fonction car le processus de parsing est le même.
-char** FormatterNoms(char** noms) {
-    if (noms == NULL)
-        return NULL;
-    
-    // Calcule le nombre d'éléments dans le tableau
-    int count = 0;
-    while (noms[count] != NULL)
-        count++;
-    
-    // Trie le tableau de noms à l'aide de qsort pour mettre les niveaux dans l'odre (ils commencent par un chiffre entre 1 et 9)
-    qsort(noms, count, sizeof(char*), comparer_niveaux);
-    
-    // On créer nouveau tableau pour stocker résultats avec malloc car on ne connait pas à l'avance la taille du tableau.
-    char** resultats = malloc((count + 1) * sizeof(char*));
-    if (resultats == NULL)
-        return NULL;
-    
-    // Traitement des noms 
-    for (int i = 0; i < count; i++) {
-        char buffer[250];  // Buffer temporaire pour le nom en cours de formattage
-        
-        // Si le premier caractère est un chiffre on considère que c'est un nievau.
+/*
+ Cette fonction formate un tableau statique de noms de fichiers pour l'affichage.
+ Elle trie d'abord les noms (tri à bulles basé sur le numéro extrait s'ils commencent par un chiffre)
+ puis, pour chaque nom, retire l'extension ".txt" et remplace les underscores par des espaces.
+ Le résultat est stocké dans un tableau statique et renvoyé.
+ */
+char (*FormatterNoms(char noms[][MAX_NAME_LEN], int nb, Erreur *err))[MAX_NAME_LEN] {
+    static char options[MAX_NIVEAUX][MAX_NAME_LEN];
+    int i, j;
+
+    /* Tri à bulles sur 'noms' selon le numéro extrait (si présent) */
+    for (i = 0; i < nb - 1; i++) {
+        for (j = i + 1; j < nb; j++) {
+            int num_i = -1, num_j = -1;
+            if (noms[i][0] >= '0' && noms[i][0] <= '9')
+                sscanf(noms[i], "%d", &num_i);
+            if (noms[j][0] >= '0' && noms[j][0] <= '9')
+                sscanf(noms[j], "%d", &num_j);
+            if (num_i > num_j) {
+                char temp[MAX_NAME_LEN];
+                strncpy(temp, noms[i], MAX_NAME_LEN);
+                strncpy(noms[i], noms[j], MAX_NAME_LEN);
+                strncpy(noms[j], temp, MAX_NAME_LEN);
+            }
+        }
+    }
+
+    /* Formatage de chaque nom pour l'affichage */
+    for (i = 0; i < nb; i++) {
+        char formatted[250];  // Buffer temporaire pour le nom formaté
         if (noms[i][0] >= '0' && noms[i][0] <= '9') {
             int numero;
-            char nomTemp[200];
-            if (sscanf(noms[i], "%d_%199[^.].txt", &numero, nomTemp) == 2) {
-                // On remplace chaque underscore dans le nom extrait par un espace
-                for (char* p = nomTemp; *p != '\0'; p++) {
-                    if (*p == '_')
-                        *p = ' ';
+            char texte[200];
+            if (sscanf(noms[i], "%d_%199[^.].txt", &numero, texte) == 2) {
+                for (int k = 0; texte[k] != '\0'; k++) {
+                    if (texte[k] == '_')
+                        texte[k] = ' ';
                 }
-                // Le format du nom en sortie est "Niveau <numéro> : <nom>".
-                snprintf(buffer, sizeof(buffer), "Niveau %d : %s", numero, nomTemp);
+                snprintf(formatted, sizeof(formatted), "Niveau %d : %s", numero, texte);
             } else {
-                // En cas d'échec, on utilise le nom original
-                snprintf(buffer, sizeof(buffer), "%s", noms[i]);
+                char temp[200];
+                if (sscanf(noms[i], "%199[^.].txt", temp) == 1)
+                    snprintf(formatted, sizeof(formatted), "Niveau : %s", temp);
+                else
+                    snprintf(formatted, sizeof(formatted), "%s", noms[i]);
+            }
+        } else {
+            char temp[200];
+            if (sscanf(noms[i], "%199[^.].txt", temp) == 1) {
+                for (int k = 0; temp[k] != '\0'; k++) {
+                    if (temp[k] == '_')
+                        temp[k] = ' ';
+                }
+                snprintf(formatted, sizeof(formatted), "Exterieur : %s", temp);
+            } else {
+                snprintf(formatted, sizeof(formatted), "%s", noms[i]);
             }
         }
-        // Sinon, le nom ne commence pas par un chiffre, on le considère comme 'Extérieur', Cad un niveau charger par l'utilisateur en général.
-        else {
-            char nomTemp[200];
-            if (sscanf(noms[i], "%199[^.].txt", nomTemp) == 1) {
-                for (char* p = nomTemp; *p != '\0'; p++) {
-                    if (*p == '_')
-                        *p = ' ';
-                }
-                // Le formate du nom en sotrie est "Exterieur : <nom>"
-                snprintf(buffer, sizeof(buffer), "Exterieur : %s", nomTemp);
-            } else {
-                // En cas d'échec du parsing, on utilise le nom original
-                snprintf(buffer, sizeof(buffer), "%s", noms[i]);
-            }
-        }
-        // Duplique le contenu du buffer et le stocke dans le tableau des résultats
-        resultats[i] = strdup(buffer);
+        strncpy(options[i], formatted, MAX_NAME_LEN - 1);
+        options[i][MAX_NAME_LEN - 1] = '\0';
     }
-    // Termine le tableau par un pointeur NULL pour indiquer qu'il n'y a plus d'éléments à traiter
-    resultats[count] = NULL;
-    
-    return resultats;
+    return options;
 }
-
 
 
 // Cette fonction permet à l'utilisateur de choisir un leaderboard à afficher.
@@ -163,82 +176,68 @@ char** FormatterNoms(char** noms) {
 // 2) FormatterNoms créer des options plus lisibles qui seront affichées comme choix grâce à AfficherChoix.
 // 3) On renvoie le choix tapé au clavier par l'utilisateur pour ouvrir le fichier en question !
 
-void ChoixLeaderboard(Erreur* erreur) {
-    // 1) On ouvre le dossier "data_leaderboard"
-    DIR *dossier = opendir("data_leaderboard");
-    if (!dossier) { 
-        printf("Aucun niveau trouvé.\n"); 
-        sleep(1); 
-        return; 
+void ChoixLeaderboard(Erreur *erreur) {
+    int nb = 0;
+    char (*noms)[MAX_NAME_LEN] = LectureNoms("data_leaderboard", &nb, erreur);
+    if (noms == NULL || nb == 0) {
+        printf("Aucun leaderboard disponible.\n");
+        sleep(1);
+        return;
     }
-    
-    char noms[100][256];
-    char *options[101];
-    int count = 0;
+    // Trier les noms de fichiers et enlever les extensions pour l'affichage
+    char (*options)[MAX_NAME_LEN] = FormatterNoms(noms, nb, erreur);
 
-    struct dirent *entry;
-    // on parcourt le dossier pour récupérer les fichiers leaderboard
-    while ((entry = readdir(dossier)) != NULL && count < 100) {
-        if (strstr(entry->d_name, "leaderboard")) {
-            strncpy(noms[count], entry->d_name, 255);
-            noms[count][255] = '\0';
-            options[count] = noms[count]; 
-            count++;
-        }
-    }
-    closedir(dossier);
-    options[count] = "Retour au menu";
-    options[count + 1] = NULL;
+    // Ajout de l'option "Retour au menu" 
+    strcpy(options[nb], "Retour au menu");
+    int nbOptions = nb + 1;
 
-    // Pour chaque option, on retire le suffixe " leaderboard" car tous les fichiers du repertoire l'ont.
-    for (int i = 0; i < count -1; i++) {
+    // Pour chaque option, retirer le suffixe " leaderboard" s'il existe 
+    for (int i = 0; i < nbOptions; i++) {
         char *pos = strstr(options[i], " leaderboard");
         if (pos)
             *pos = '\0';
     }
+
     // Affichage graphique des choix + on récupère l'option choisie.
     printf("\t\t\t\t\t\t\t\033[36m▲▼▲▼▲ CHOIX DU LEADERBOARD ▲▼▲▼▲\033[0m\n\n");
 
-    char **formatted = FormatterNoms(options);
-    int choix = AfficherChoix(options, count + 1);  
-    
+    int choix = AfficherChoix(options, nbOptions, erreur);
     // Si l'utilisateur choisit "Retour au menu"
-    if (choix == count - 1) {
+    if (choix == nbOptions - 1) {
         return;
     }
     
     // Si un leaderboard a été choisi, on initialise une structure de jeu pour simuler un affichage de leaderboard de fin de partie.
-    if (choix >= 0 && choix < count - 1 && noms[choix]) {
+    if (choix >= 0 && choix < nbOptions - 1 && noms[choix]) {
         AfficherLeaderboard(noms[choix], erreur);
     }
 }
 
-void LibererNomsFormates(char** noms) {
-    if (!noms) return;
-    for (int i = 0; noms[i]; i++) free(noms[i]);
-    free(noms);
-}
-
-char* RecupererNom(const char* chemin) {
-    // Cherche le dernier '/' et prend la sous-chaîne suivante
-    const char* nom = strrchr(chemin, '/');
-    if (!nom) {
-        nom = chemin;
+// Récupère le nom de fichier à partir d'un chemin complet en utilisant un buffer statique ; 
+// retire l'extension (la dernière occurrence de '.') ; 
+// en cas de problème (résultat vide), renseigne la structure Erreur.
+char* RecupererNom(const char* chemin, Erreur *err) {
+    static char copie[MAX_NAME_LEN]; // Buffer statique pour le nom extrait
+    const char* nom = strrchr(chemin, '/'); // Cherche le dernier '/' dans le chemin
+    if (!nom) { // Si aucun '/' n'est trouvé, copie le chemin entier
+        strncpy(copie, chemin, MAX_NAME_LEN - 1);
+        copie[MAX_NAME_LEN - 1] = '\0';
     } else {
-        nom++; // passe le '/'
+        nom++; // Passe le '/'
+        strncpy(copie, nom, MAX_NAME_LEN - 1);
+        copie[MAX_NAME_LEN - 1] = '\0';
     }
-    // Duplique la chaîne
-    char* copie = strdup(nom);
-    if (!copie) return NULL;
-    // Supprime l'extension, si présente (on cherche le dernier '.')
-    char* dot = strrchr(copie, '.');
-    if (dot) {
-        *dot = '\0';
+    char* point = strrchr(copie, '.'); // Cherche le dernier '.' pour l'extension
+    if (point)
+        *point = '\0'; // Retire l'extension
+    if (strlen(copie) == 0 && err) { // Si le résultat est vide, renseigne la structure Erreur
+        snprintf(err->msg_erreur, sizeof(err->msg_erreur), "Nom de fichier vide après extraction");
+        err->statut_erreur = 1;
     }
     return copie;
 }
 
-// ne fonctionne pas
+// fait changer l'ennemi de ligne au cours du jeu, ne fonctionne pas
 void ChangerLigne(Jeu * jeu, Etudiant* e, int saut) {
     printf("L'ennemi est à la position %d\n", e->position);
     if (e == NULL || jeu == NULL || saut == 0) {

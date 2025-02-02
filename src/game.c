@@ -326,6 +326,17 @@ void JouerPartie(Jeu* jeu, Erreur* erreur) {
             if (erreur->statut_erreur) return;
             printAvecDelai("\n         "ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE"  Bravo, vous avez défendu l'université !  " ANSI_RESET "\n", 50);
             while ((getchar()) != '\n');
+            
+            // on récupère le nom du niveau
+            char* nom_base = RecupererNom(jeu->fichier_ennemis, erreur);
+
+            if (nom_base) {
+                char cheminLeaderboard[MAX_NAME_LEN];
+                snprintf(cheminLeaderboard, sizeof(cheminLeaderboard), "data_leaderboard/%s_leaderboard.txt", nom_base);
+                strncpy(jeu->fichier_ennemis, cheminLeaderboard, sizeof(jeu->fichier_ennemis) - 1);
+                jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
+                AfficherLeaderboard(jeu->fichier_ennemis, erreur);
+            }
             break;
         }
         

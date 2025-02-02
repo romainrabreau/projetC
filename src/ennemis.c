@@ -2,7 +2,7 @@
 
 
 const TypeEnnemi TYPES_ENNEMIS[] = {
-    // symbole, points de vie, vitesse, nom
+    // symbole, points de vie, vitesse, nom, description
     {'Z', 3, 2, "Étudiant", "Étudiant de base, avance à moitié endormi"},
     {'E', 8, 1, "Étudiant L1", "Résistant mais aussi le plus lent, fait de gros dégâts sur sa ligne"},
     {'X', 2, 4, "Étudiant Talent", "Plus rapide, moins résistant"},
@@ -218,10 +218,7 @@ int ActionFaineant(Jeu* jeu, Etudiant* e) {
                 curseur->prev_line = e;
                 return 3;
             }
-            else {
-                return 3;
-            }
-
+            return 3;
             
         }
         if (e->ligne == NB_LIGNES) {
@@ -232,6 +229,7 @@ int ActionFaineant(Jeu* jeu, Etudiant* e) {
             }
             return 3;
         }
+        return 3;
     } else {
         // ne fait rien (2/3)
         printf("Le Fainéant reste immobile ce tour.\n");

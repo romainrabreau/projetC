@@ -16,7 +16,9 @@
 #define NB_TYPES_ENNEMIS 6
 #define NB_TYPES_TOURELLES 6
 #define MAX_SCORES 10
-#define NB_NIVEAUX 5
+#define MAX_NIVEAUX 5
+#define MAX_NAME_LEN 256
+#define MAX_SAVE 100
 
 
 // couleurs de texte de sortie terminal
@@ -39,7 +41,7 @@
 #define ANSI_BG_ROUGE "\033[48;5;124m"
 
 
-
+extern char pseudo[];
 
 /// definition des structures du jeu
 typedef struct {
@@ -109,7 +111,6 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau);
 
 //prototypes de fonctions d'introduction 
 void IntroduireJeu(Erreur* erreur);
-void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur);
 
 // prototypes de fonctions de gestion des ennemis
 const TypeEnnemi* trouverTypeEnnemi(char symbole);
@@ -128,10 +129,10 @@ Tourelle* AjouterTourelles(Tourelle* * premier, Tourelle* dernier, char* ligne_t
 // fonctions d'aide
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur);
 void Attendre(int ms);
-void ChangerLigne(Jeu * jeu, Etudiant* e, int saut);
-char** LectureNoms(DIR* dossier);
-void ChoixLeaderboard(Erreur* erreur);
-char* RecupererNom(const char* chemin);
+char (*LectureNoms(char *dossierChemin, int *nb, Erreur *err))[MAX_NAME_LEN];
+char (*FormatterNoms(char noms[][MAX_NAME_LEN], int nb, Erreur *err))[MAX_NAME_LEN];
+void ChoixLeaderboard(Erreur *err);
+char* RecupererNom(const char* chemin, Erreur* erreur);
 
 // prototypes de fonctions de jeu
 void JouerPartie(Jeu* jeu, Erreur* erreur);
@@ -143,17 +144,13 @@ void printAvecDelai(const char *text, int delai_ms);
 void BarreChargement(int ms);
 void AfficherTitre();
 void IntroMenu();
-
-
 void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur);
-int AfficherChoix(char **options, int n_options);
-char** FormatterNoms(char** noms);
-void LibererNomsFormates(char** noms);
+int AfficherChoix(char options[][MAX_NAME_LEN], int n_options, Erreur *err);
 
 // prototypes de fonctions de score
-void AjouterAuScore(Jeu *jeu, Etudiant *e, Erreur *erreur);
-void AjouterAuLeaderboard(Jeu *jeu, Erreur* erreur);
-void AfficherLeaderboard(char *cheminFichier, Erreur* erreur);
+void AjouterAuScore(Jeu* jeu, Etudiant* e, Erreur* erreur);
+void AjouterAuLeaderboard(Jeu* jeu, Erreur* erreur);
+void AfficherLeaderboard(const char *nomLeaderboard, Erreur *err);
 
 // prototypes de fonctions de sauvegarde de partie
 void SauvegarderPartie(Jeu* jeu, Erreur* erreur);
