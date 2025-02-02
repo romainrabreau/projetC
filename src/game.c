@@ -286,7 +286,7 @@ void JouerPartie(Jeu* jeu, Erreur* err) {
                 free(nom_base);
                 strncpy(jeu->fichier_ennemis, cheminLeaderboard, sizeof(jeu->fichier_ennemis) - 1);
                 jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
-                AfficherLeaderboard(jeu);
+                AfficherLeaderboard(jeu->fichier_ennemis, err);
             }
             
             printf("Bravo, vous avez défendu l'université !\n");

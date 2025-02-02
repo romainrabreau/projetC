@@ -44,64 +44,69 @@ void IntroMenu() {
     animer_attente(200, CLEAR_LINE);
 }
 
-int AfficherChoix(char **options, int n_options) {
+int AfficherChoix(char options[][MAX_NAME_LEN], int n_options, Erreur *err) {
     int choice = -1;
-    char input[10];
+    char input[10] = {0};
 
     while (1) {
         int max_length = 0;
+        // Calculer la longueur maximale (pour encadrer joliment l'affichage)
         for (int i = 0; i < n_options; ++i) {
-            int len = strlen(options[i]) + 3;
+            int len = strlen(options[i]) + 3;  // 3 caractères de marge
             if (len > max_length) {
                 max_length = len;
             }
         }
 
-        // Ligne du haut
+        // Affichage de la ligne supérieure de séparation
         printf("\t\t\t\t\t\t\t---");
         for (int i = 0; i < max_length; i++) {
             printf("-");
         }
         printf("---\n");
 
-        // Liste des options
+        // Affichage de la liste des options
         for (int i = 0; i < n_options; ++i) {
-            printf("\t\t\t\t\t\t\t");
-            printf("   %d. %s\n", i + 1, options[i]);
+            printf("\t\t\t\t\t\t\t   %d. %s\n", i + 1, options[i]);
         }
 
-        // Ligne du bas
+        // Affichage de la ligne inférieure de séparation
         printf("\t\t\t\t\t\t\t---");
         for (int i = 0; i < max_length; i++) {
             printf("-");
         }
         printf("---\n\n");
 
-        // Lecture du choix
+        // Demander à l'utilisateur de faire un choix
         printf("\t\t\t\t\t\t\tVeuillez sélectionner une option (1-%d) : ", n_options);
 
         if (fgets(input, sizeof(input), stdin) != NULL) {
             size_t len = strlen(input);
+            // Retirer le retour à la ligne s'il est présent
             if (len > 0 && input[len - 1] == '\n') {
-                input[len - 1] = '\0';  
-                len--;
+                input[len - 1] = '\0';
             }
             int selected = atoi(input);
             if (selected >= 1 && selected <= n_options) {
                 choice = selected - 1;
                 break;
             } else {
-                fflush(stdout);
                 printf("\n\t\t\t\t\t\t\tOption invalide. Veuillez entrer un nombre entre 1 et %d.\n", n_options);
-                getchar(); 
             }
         } else {
             printf("\n\t\t\t\t\t\t\tErreur de lecture. Veuillez réessayer.\n");
+            if (err) {
+                snprintf(err->msg_erreur, sizeof(err->msg_erreur),
+                         "Erreur de lecture dans AfficherChoix.");
+                err->statut_erreur = 1;
+            }
         }
         printf("\n");
     }
+
     return choice; // renvoie le choix (0, 1, 2, etc.)
 }
+
 
 void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur) {
     printf("\n");

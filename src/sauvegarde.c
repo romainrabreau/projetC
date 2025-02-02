@@ -2,41 +2,34 @@
 
 // Cette fonction utilitaire extrait le "NomFichier" d'un chemin de sauvegarde.
 // Par exemple, pour "Sauvegardes/2_Talents_De_Sprinteur_(Manu)_MaSauvegarde_save.txt", la fonction renvoie "2_Talents_De_Sprinteur".
-char *ExtraireNomFichierSauvegarde(const char *chemin_save, Erreur *erreur) {
+void ExtraireNomFichierSauvegarde(const char *chemin_save, Erreur *erreur, char *dest) {
     // Cherche le dernier '/' dans le chemin pour obtenir le nom complet du fichier.
-    char *nomComplet = strrchr(chemin_save, '/');
+    const char *nomComplet = strrchr(chemin_save, '/');
     if (!nomComplet)
-        nomComplet = (char *)chemin_save;
+        nomComplet = chemin_save;
     else
-        nomComplet++;
-    
-    // On suppose avoir le format "NomFichier_(Pseudo)_NomAttribué_save.txt", donc on cherche le premier '_' qui sépare le NomFichier du reste.
-    char *posU = strchr(nomComplet, '_');
+        nomComplet++;  // passe le '/'
+
+    // On suppose avoir le format "NomFichier_(Pseudo)_NomAttribué_save.txt"
+    // On cherche le premier '_' qui sépare le NomFichier du reste.
+    const char *posU = strchr(nomComplet, '_');
     if (!posU) {
-        // Aucun '_' trouvé : on retourne une copie de nomComplet sans l'extension
-        char *copie = strdup(nomComplet);
-        if (!copie) {
-            erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Erreur d'allocation dans ExtraireNomFichierSauvegarde");
-            return NULL;
-        }
-        char *point = strrchr(copie, '.');
+        // Aucun '_' trouvé : on copie nomComplet sans l'extension.
+        strncpy(dest, nomComplet, MAX_NAME_LEN - 1);
+        dest[MAX_NAME_LEN - 1] = '\0';
+        char *point = strrchr(dest, '.');
         if (point)
             *point = '\0';
-        return copie;
+        return;
     }
-    // Calcule la longueur de la partie avant le premier underscore (soit le NomFichier)
+    // Calcul de la longueur de la partie avant le premier underscore (soit le NomFichier)
     size_t len = posU - nomComplet;
-    char *resultat = (char *)malloc(len + 1);
-    if (!resultat) {
-        erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Erreur d'allocation dans ExtraireNomFichierSauvegarde");
-        return NULL;
-    }
-    strncpy(resultat, nomComplet, len);
-    resultat[len] = '\0';
-    return resultat;
+    if (len > MAX_NAME_LEN - 1)
+        len = MAX_NAME_LEN - 1;
+    strncpy(dest, nomComplet, len);
+    dest[len] = '\0';
 }
+
 
 // Sauvegarde l'état du jeu dans un fichier texte pour quel'utilisateur reprenne sa partie plus tard.
 void SauvegarderPartie(Jeu* jeu, Erreur *erreur) {
@@ -114,7 +107,7 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
         strcpy(erreur->msg_erreur, "Structure de jeu non initialisée");
         return;
     }
-    // On ouvre le fichier et on lis toutes les stats pour les attribuées à la structure Jeu.
+    // On ouvre le fichier et on lit toutes les stats pour les attribuer à la structure Jeu.
     FILE *fichier = fopen(chemin_save, "r");
     if (!fichier) {
         erreur->statut_erreur = 1;
@@ -123,6 +116,7 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
     }
     strncpy(jeu->fichier_ennemis, chemin_save, sizeof(jeu->fichier_ennemis) - 1);
     jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
+    
     // Lecture du tour courant du jeu ..
     if (fscanf(fichier, "Tour %d\n", &jeu->tour) != 1) {
         fclose(fichier);
@@ -130,14 +124,14 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
         strcpy(erreur->msg_erreur, "Format de tour invalide");
         return;
     }
-    // ..de la cagnotte..
+    // .. de la cagnotte ..
     if (fscanf(fichier, "Cagnotte %d\n", &jeu->cagnotte) != 1) {
         fclose(fichier);
         erreur->statut_erreur = 1;
         strcpy(erreur->msg_erreur, "Format de cagnotte invalide");
         return;
     }
-    // ..du pseudo du joueur qui a fait la partie. On ne reprend pas le pseudo demandé au lancement du code car ce n'est pas lui qui a commencé la partie.
+    // .. du pseudo du joueur qui a fait la partie.
     {
         char pseudoSauvegarde[50];
         if (fscanf(fichier, "Pseudo %49[^\n]\n", pseudoSauvegarde) != 1) {
@@ -149,7 +143,7 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
         strncpy(jeu->pseudo, pseudoSauvegarde, sizeof(jeu->pseudo) - 1);
         jeu->pseudo[sizeof(jeu->pseudo) - 1] = '\0';
     }
-    // On récupère les stats sur les tourelles.
+    // Récupération des statistiques des tourelles.
     int nbTourelles;
     if (fscanf(fichier, "NbTourelles %d\n", &nbTourelles) != 1) {
         fclose(fichier);
@@ -188,7 +182,7 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
         dernierTourelle = nouvelle;
     }
 
-    // On récupère les stats sur les étudiants.
+    // Récupération des statistiques des étudiants.
     int nbEtudiants;
     if (fscanf(fichier, "NbEtudiants %d\n", &nbEtudiants) != 1) {
         fclose(fichier);
@@ -235,13 +229,18 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
     jeu->score = 0;
     animer_attente(500, "Partie relancée !");
 
-    // Mise à jour de fichier_ennemis pour ne conserver que le NomFichier extrait de la sauvegarde.
-    // Cela permet de ne pas créer un leaderboard doublon car la partie aurait repris avec un nouveau nom...
-    char *nomFichierSauvegarde = ExtraireNomFichierSauvegarde(chemin_save, erreur);
-    strncpy(jeu->fichier_ennemis, nomFichierSauvegarde, sizeof(jeu->fichier_ennemis) - 1);
-    jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
-    free(nomFichierSauvegarde);
+    /* Mise à jour de fichier_ennemis pour ne conserver que le nom du fichier extrait de la sauvegarde.
+       Pour éviter la création d'un leaderboard doublon, on extrait le nom du fichier sans les répertoires.
+       Ici, nous utilisons un buffer statique pour stocker le nom extrait.
+       On suppose que la fonction ExtraireNomFichierSauvegarde a été modifiée pour remplir un buffer passé en argument.
+    */
+    {
+        char nomFichierSauvegarde[MAX_NAME_LEN] = {0};
+        ExtraireNomFichierSauvegarde(chemin_save, erreur, nomFichierSauvegarde);
+        strncpy(jeu->fichier_ennemis, nomFichierSauvegarde, sizeof(jeu->fichier_ennemis) - 1);
+        jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
+    }
 
-    // Suppression du fichier de sauvegarde une fois la partie relancée pour ne pas en créer trop
+    // Suppression du fichier de sauvegarde pour éviter d'en créer trop.
     remove(chemin_save);
 }

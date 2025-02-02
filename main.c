@@ -1,7 +1,11 @@
 #include "src/header.h"
 
-char pseudo[50];
+char pseudo[50]; // Variable Gloable pour le pseudo car utilisé dans plusieurs fichiers.
 
+/*
+ Libère la mémoire allouée aux ennemis et aux tourelles.
+ (Ici, les fonctions LibererEnnemis et LibererTourelles gèrent elles-mêmes la libération des ressources utilisées par ces structures.)
+ */
 void LibererJeu(Jeu* jeu) {
     if (jeu == NULL) {
         return;
@@ -10,8 +14,15 @@ void LibererJeu(Jeu* jeu) {
     LibererTourelles(jeu->tourelles);
 }
 
-void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
-    // Vérification des entrées
+/*
+ Prépare la partie à partir du fichier de niveau indiqué par chemin_niveau.
+ 1) Ouvre le fichier du niveau et lit la cagnotte.
+ 2) Initialise les ennemis via InitialisationEnnemis.
+ 3) Affiche les ennemis via VisualiserEnnemis.
+ 4) Initialise les tourelles via InitialisationTourelles.
+ Le chemin du fichier est également sauvegardé dans la structure de jeu.
+ */
+void PreparerPartie(Erreur* erreur, Jeu* jeu, char* chemin_niveau) {
     if (erreur->statut_erreur) return;
     if (jeu == NULL) {
         erreur->statut_erreur = 1;
@@ -19,16 +30,15 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
         return;
     }
 
-    // Ouverture du fichier
+    // On lis le fichier fourni
     FILE* fichier = fopen(chemin_niveau, "r");
     if (!fichier) {
         erreur->statut_erreur = 1;
-        snprintf(erreur->msg_erreur, sizeof(erreur->msg_erreur), 
-                "Ouverture impossible : %s", chemin_niveau);
+        snprintf(erreur->msg_erreur, sizeof(erreur->msg_erreur), "Ouverture impossible : %s", chemin_niveau);
         return;
     }
 
-    // Stockage du chemin
+    // Sauvegarde du chemin dans la structure de jeu 
     strncpy(jeu->fichier_ennemis, chemin_niveau, sizeof(jeu->fichier_ennemis) - 1);
     jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
 
@@ -43,7 +53,7 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
     }
     jeu->cagnotte = cagnotte;
 
-    // Initialisation des ennemis
+    /* Initialisation des ennemis */
     animer_attente(1500, "Analyse des menaces...");
     printf("\033[36;47mDétection des ennemis..." RESET "\n");
     Etudiant* etudiants = InitialisationEnnemis(fichier, jeu, erreur);
@@ -54,6 +64,7 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
     VisualiserEnnemis(jeu->etudiants, erreur);
     if (erreur->statut_erreur) return;
 
+    /* Initialisation des tourelles */
     animer_attente(1000, "Configuration des défenses...");
     Tourelle* tourelles = InitialisationTourelles(&jeu->cagnotte, erreur);
     if (erreur->statut_erreur) return;
@@ -67,145 +78,144 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
     animer_attente(500, "Préparation terminée !");
 }
 
-char* Menu(void) {
+/*
+ * Affiche un menu principal et renvoie, le chemin
+ * de la partie (niveau ou sauvegarde) sélectionné par l'utilisateur.
+ * La gestion des erreurs est réalisée via la structure Erreur.
+ */
+char* Menu(Erreur *err) {
+    // Effacer l'écran et afficher le titre.
     printf("\033[0;0H\033[2J");
     AfficherTitre();
     printf("Bienvenue %s !\n\n", pseudo);
-
-    char* options_menu[] = {
+    
+    // Menu principal
+    char menu_options[5][MAX_NAME_LEN] = {
         "Jouer les niveaux", 
         "Charger une partie", 
         "Reprendre une partie sauvegardée",
         "Classements", 
         "Quitter"
     };
-    int choix = AfficherChoix(options_menu, 5);
+    int choix = AfficherChoix(menu_options, 5, err);
     animer_attente(500, CLEAR_LINE);
-
+    
+    char chemin[MAX_NAME_LEN];
+    
     switch(choix) {
         case 0: { // Jouer les niveaux
-            DIR *dossier = opendir("Niveau");
-            if (!dossier) {
-                printf("\033[31mDossier 'Niveau' introuvable!\033[0m\n");
+            int nbNiveaux = 0;
+            char (*noms)[MAX_NAME_LEN] = LectureNoms("Niveau", &nbNiveaux, err); // Lis les noms de fichiers texte dans le dossier Niveau.
+            if (noms == NULL || nbNiveaux == 0) {
+                if(err) {
+                    snprintf(err->msg_erreur, sizeof(err->msg_erreur), "Aucun niveau disponible ou dossier 'Niveau' introuvable!");
+                    err->statut_erreur = 1;
+                }
                 return NULL;
             }
-            char **noms = LectureNoms(dossier);
-            closedir(dossier);
-            if (!noms) return NULL;
-            char **options = FormatterNoms(noms);
-            int nb_niveaux = 0;
-            while (options[nb_niveaux]) nb_niveaux++;
-            options = realloc(options, (nb_niveaux + 2) * sizeof(char *));
-            options[nb_niveaux] = strdup("Retour");
-            options[nb_niveaux + 1] = NULL;
-            nb_niveaux++;
-            int selection = AfficherChoix(options, nb_niveaux);
-            char *chemin = NULL;
-            if (selection >= 0 && selection < nb_niveaux - 1) {
-                chemin = malloc(strlen("Niveau/") + strlen(noms[selection]) + 1);
-                if (chemin)
-                    sprintf(chemin, "Niveau/%s", noms[selection]);
-            }
-            LibererNomsFormates(options);
-            for (int i = 0; noms[i]; i++) free(noms[i]);
-            free(noms);
+            char (*options)[MAX_NAME_LEN] = FormatterNoms(noms, nbNiveaux, err); // Retourne la liste des options de niveaux dans un format lisible pour l'utilisateur
+            int selection = AfficherChoix(options, nbNiveaux, err);
+            if (selection < 0 || selection >= nbNiveaux)
+                return NULL;
+            snprintf(chemin, sizeof(chemin), "Niveau/%s", noms[selection]);
             return chemin;
         }
         case 1: { // Charger une partie (saisie manuelle)
-            char buffer[256];
+            char buffer[MAX_NAME_LEN];
             printf("Entrez l'adresse de la partie à charger (exemple: Dossier/2_Talents_De_Sprinteur.txt) : ");
             if (fgets(buffer, sizeof(buffer), stdin) == NULL) {
-                printf("\033[31mErreur de lecture.\033[0m\n");
+                if(err) {
+                    snprintf(err->msg_erreur, sizeof(err->msg_erreur), "Erreur de lecture.");
+                    err->statut_erreur = 1;
+                }
                 return NULL;
             }
             buffer[strcspn(buffer, "\n")] = '\0';
             if (strlen(buffer) == 0) {
-                printf("\033[31mAdresse vide, retour au menu.\033[0m\n");
+                if(err) {
+                    snprintf(err->msg_erreur, sizeof(err->msg_erreur), "Adresse vide, retour au menu.");
+                    err->statut_erreur = 1;
+                }
                 return NULL;
             }
-            return strdup(buffer);
+            snprintf(chemin, sizeof(chemin), "%s", buffer);
+            return chemin;
         }
         case 2: { // Reprendre une partie sauvegardée
-            DIR *dossier = opendir("Sauvegardes");
-            if (!dossier) {
-                printf("\033[31mDossier 'Sauvegardes' introuvable !\033[0m\n");
-                return NULL;
-            }
-            char **noms = LectureNoms(dossier);
-            closedir(dossier);
-            if (!noms || !noms[0]) {
-                if(noms) { for (int i = 0; noms[i]; i++) free(noms[i]); free(noms); }
-                printf("Aucune sauvegarde disponible.\n");
+            int nbSave = 0;
+            char (*noms)[MAX_NAME_LEN] = LectureNoms("Sauvegardes", &nbSave, err); // Lis les fichiers texte du dossier Sauvegardes
+            if (noms == NULL || nbSave == 0) {
+                if(err) {
+                    snprintf(err->msg_erreur, sizeof(err->msg_erreur), "Aucune sauvegarde disponible ou dossier 'Sauvegardes' introuvable!");
+                    err->statut_erreur = 1;
+                }
                 sleep(1);
                 return NULL;
             }
-            char **options = FormatterNoms(noms);
-            int nb_save = 0;
-            while (options[nb_save]) nb_save++;
-            for (int i = 0; i < nb_save; i++) {
+            char (*options)[MAX_NAME_LEN] = FormatterNoms(noms, nbSave, err); /// Retourne la liste des options de niveaux dans un format lisible pour l'utilisateur
+            // On retire le suffixe "save" pour plus de lisibilité.
+            for (int i = 0; i < nbSave; i++) {
                 char *pos = strstr(options[i], "save");
-                if (pos) *pos = '\0';
+                if (pos)
+                    *pos = '\0';
             }
-            options = realloc(options, (nb_save + 2) * sizeof(char *));
-            options[nb_save] = strdup("Retour");
-            options[nb_save + 1] = NULL;
-            nb_save++;
-            int selection = AfficherChoix(options, nb_save);
-            char *chemin = NULL;
-            if (selection >= 0 && selection < nb_save - 1) {
-                chemin = malloc(strlen("Sauvegardes/") + strlen(noms[selection]) + 1);
-                if (chemin)
-                    sprintf(chemin, "Sauvegardes/%s", noms[selection]);
-            }
-            LibererNomsFormates(options);
-            for (int i = 0; noms[i]; i++) free(noms[i]);
-            free(noms);
+            /* Ajouter l'option "Retour" à la fin */
+            strncpy(options[nbSave], "Retour", MAX_NAME_LEN - 1);
+            options[nbSave][MAX_NAME_LEN - 1] = '\0';
+            
+            int selection = AfficherChoix(options, nbSave + 1, err);
+            if (selection < 0 || selection > nbSave)
+                return NULL;
+            if (selection == nbSave)  // Option "Retour" choisie
+                return NULL;
+            snprintf(chemin, sizeof(chemin), "Sauvegardes/%s", noms[selection]);
             return chemin;
         }
-        case 3: // Classements
-            ChoixLeaderboard();
+        case 3: { // Classements
+            ChoixLeaderboard(err);
             return NULL;
-        case 4: // Quitter
+        }
+        case 4: { // Quitter
             exit(0);
+        }
         default:
             return NULL;
     }
 }
-    
+
 int main() {
     Erreur erreur = {0};
-    IntroMenu();
+    IntroMenu(); // Affiche l'introduction du jeu
 
     printf("Entrez votre pseudo : ");
     scanf("%49s", pseudo);
-    while (getchar() != '\n');
+    while (getchar() != '\n'); 
 
-    while (1) { // Boucle de jeu
-        char* cheminPartie = Menu();
+    while (1) { // Boucle principale entre les parties
+        char* cheminPartie = Menu(&erreur); // Affiche le menu et récupère le chemin choisi
         if (!cheminPartie)
             continue;
 
-        Jeu jeu;
-        char chemin[256];
-        strncpy(chemin, cheminPartie, sizeof(chemin) - 1);
-        chemin[sizeof(chemin) - 1] = '\0';
-        free(cheminPartie);
+        Jeu jeu; 
+        char chemin[MAX_NAME_LEN]; // Buffer pour le chemin de la partie
+        strncpy(chemin, cheminPartie, MAX_NAME_LEN - 1); // Copie le chemin
+        chemin[MAX_NAME_LEN - 1] = '\0'; // Termine par '\0'
 
-        // Si le chemin commence par "Sauvegardes/", il s'agit d'une sauvegarde, sinon c'est un niveau normal.
-        if (strncmp(chemin, "Sauvegardes/", strlen("Sauvegardes/")) == 0)
+        // Relance une sauvegarde si le chemin commence par "Sauvegardes/", sinon prépare un niveau normal
+        if (strncmp(chemin, "Sauvegardes/", strlen("Sauvegardes/")) == 0) {
             RelancerPartie(&erreur, &jeu, chemin);
-        else
+        } else {
             PreparerPartie(&erreur, &jeu, chemin);
-
-        if (erreur.statut_erreur) {
+        }
+            
+        if (erreur.statut_erreur) { // En cas d'erreur, affiche le message et on libère la mémoire du jeu qui à potentiellement été initialisé.
             printf("\033[31mERREUR: %s\033[0m\n", erreur.msg_erreur);
             LibererJeu(&jeu);
             continue;
         }
 
-        JouerPartie(&jeu, &erreur);
-
-        LibererJeu(&jeu);
+        JouerPartie(&jeu, &erreur); // Démarre la partie
+        LibererJeu(&jeu); // Libère la mémoire après la partie
         printf("\nAppuyez sur Entrée pour continuer...");
         while (getchar() != '\n');
     }
