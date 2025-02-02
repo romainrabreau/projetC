@@ -1,4 +1,4 @@
 *.vscode
 commands.md
 .DS_Store
-
+/data_leaderboard/*

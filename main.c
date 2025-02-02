@@ -46,9 +46,9 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
     ResoudreFichier(fichier, erreur);
     if (erreur->statut_erreur) return;
 
-    printf("\t");
-    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "       ❃  Détection des ennemis en cours ...         "ANSI_RESET"\n\n");
-    BarreChargement(1000);  
+    printf("\n\n\t");
+    printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "      ❃  Détection des ennemis en cours ...       "ANSI_RESET"\n\n");
+    BarreChargement(600);  
     printf("\n\n");
     Etudiant* etudiants = InitialisationEnnemis(fichier, jeu, erreur);
     fclose(fichier);
@@ -70,6 +70,7 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
     getchar();
     printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "       ❃  Configuration des défenses en cours...         "ANSI_RESET"\n\n");
 
+    // cagnotte est modifée par InitialisationTourelles et prend la valeur de la somme restante
     Tourelle* tourelles = InitialisationTourelles(&jeu->cagnotte, erreur);
 
     if (erreur->statut_erreur) return;
@@ -80,9 +81,10 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
     jeu->score = 0;
     jeu->tour = 0; 
     
-    AnimerAttente(500, ANSI_TEXTE_BLEU_FONCE "     Préparation terminée !"ANSI_RESET);
+    printf("\n\n");
+    AnimerAttente(1000, ANSI_TEXTE_BLEU_FONCE "     Préparation terminée !"ANSI_RESET);
 
-    printf(ANSI_TEXTE_GRIS "\n\n\t\t\t\t\t\t\tAppuyez sur Entrée pour continuer...]" ANSI_RESET "");
+    printf(ANSI_TEXTE_GRIS "\n\n\tAppuyez sur Entrée pour continuer..." ANSI_RESET "");
     fflush(stdout);
     while(getchar() != '\n');
     return;

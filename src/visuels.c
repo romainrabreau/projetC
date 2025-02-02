@@ -151,17 +151,17 @@ void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur) {
 
     printf("  ");
     for (int i = 0; i < maxTour; i++) {
-        printf(ANSI_TEXTE_BLEU_FONCE "%2d " ANSI_RESET, i + 1);
+        printf(ANSI_TEXTE_BLEU_MOYEN "%2d " ANSI_RESET, i + 1);
     }
     printf("\n");
 
     for (int i = 0; i <= maxTour; i++) {
-        printf(ANSI_TEXTE_BLEU_FONCE "---" ANSI_RESET);
+        printf(ANSI_TEXTE_BLEU_MOYEN "---" ANSI_RESET);
     }
     printf("\n");
     
     for (int i = 0; i < NB_LIGNES; i++) {
-        printf(ANSI_TEXTE_BLEU_FONCE "%d| " ANSI_RESET, i + 1);
+        printf(ANSI_TEXTE_BLEU_MOYEN "%d| " ANSI_RESET, i + 1);
         for (int j = 0; j < maxTour; j++) {
             if (waves[i][j] == '.') {
                 printf(ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_MOYEN "%c  " ANSI_RESET, waves[i][j]);

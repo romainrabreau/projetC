@@ -45,7 +45,6 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     // remet le curseur au début du fichier
     rewind(fichier_ennemis);
     fgets(ligne_fichier, sizeof(ligne_fichier), fichier_ennemis);  // skip une ligne (la cagnotte)
-    printf("Le fichier est trié\n");
 }
 
 

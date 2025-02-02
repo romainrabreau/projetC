@@ -35,8 +35,7 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
         }
         Etudiant* e = jeu->etudiants;
         if (e == NULL) {
-            erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Plus d'ennemis à attaquer\n");
+            return;
         }
 
         while (e != NULL && !(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position <= NB_EMPLACEMENTS + 1 && e->position > t->position)) {

@@ -116,7 +116,7 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
 
     printf("        "ANSI_TEXTE_BLEU_FONCE ANSI_BG_BLANC "SYMBOLE_X" ANSI_RESET " doit être un symbole de tourelle valide, et " ANSI_TEXTE_BLEU_FONCE ANSI_BG_BLANC "EMPLACEMENT_i" ANSI_RESET " doit être un entier entre 1 et %d\n", NB_EMPLACEMENTS);
 
-    printf("            Par exemple : " ANSI_TEXTE_BLANC ANSI_BG_BLEU_SHINY "➩ A 3, A 5, A 12" ANSI_RESET "\n\n");
+    printf("            Par exemple : " ANSI_TEXTE_BLANC ANSI_BG_BLEU_SHINY "➩ T 3, T 5, T 12" ANSI_RESET "\n\n");
 
     printf("        Sinon, faites "ANSI_TEXTE_BLEU_MOYEN "entrée" ANSI_RESET" pour passer à la ligne suivante\n\n");
     printf("    × Vous ne pouvez pas placer deux tourelles sur le même emplacement\n\n");
