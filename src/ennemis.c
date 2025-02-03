@@ -3,12 +3,12 @@
 
 const TypeEnnemi TYPES_ENNEMIS[] = {
     // symbole, points de vie, vitesse, nom, description
-    {'Z', 3, 2, "Étudiant", "Étudiant de base, avance à moitié endormi"},
-    {'E', 8, 1, "Étudiant L1", "Résistant mais aussi le plus lent, fait de gros dégâts sur sa ligne"},
-    {'X', 2, 4, "Étudiant Talent", "Plus rapide, moins résistant"},
-    {'S', 3, 1, "Syndicaliste", "Augmente la vitesse des ennemis adjacents de sa ligne lorsqu'il meurt"},
-    {'F', 6, 3, "Fainéant", "Fait des sauts aléatoires (parfois sur la ligne d'en dessous) ou ne bouge pas pendant plusieurs tours, résistant"},
-    {'D', 6, 1, "Doctorant", "Résistant et soigne les ennemis de 1 PV par tour sur une zone de 3 cases et 3 lignes."}
+    {'Z', 3, 2, "Étudiant", "Étudiant de base, avance à moitié endormi, fait 1 dégât"},
+    {'L', 8, 1, "Étudiant L1", "Résistant mais aussi le plus lent, fait de gros dégâts de 3"},
+    {'X', 2, 4, "Étudiant Talent", "Plus rapide, moins résistant, dégât de 2"},
+    {'S', 3, 1, "Syndicaliste", "Augmente la vitesse des ennemis adjacents de sa ligne lorsqu'il meurt, fait 2 dégât"},
+    {'F', 6, 3, "Fainéant", "Fait des sauts aléatoires (parfois sur la ligne d'en dessous) ou ne bouge pas pendant plusieurs tours, résistant, fait 1 dégât une fois sur deux"},
+    {'D', 6, 1, "Doctorant", "Résistant et soigne les ennemis de 1 PV par tour sur une zone de 3 cases et 3 lignes, fait 1 dégât"}
 };
 
 
@@ -131,8 +131,8 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
 void LibererEnnemis(Etudiant* premier) {
     while (premier != NULL) {
         Etudiant* courant = premier;
-        premier = premier->next;
         free(courant);
+        premier = premier->next;
     }
 }
 
@@ -170,22 +170,19 @@ void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
     if (ennemi->next_line) {
         ennemi->next_line->prev_line = ennemi->prev_line;
     }
-    printf("L'ennemi a été supprimé\n");
     free(ennemi);
 }
 
 int ActionFaineant(Jeu* jeu, Etudiant* e) {
     int choix = rand() % 6; 
     if (choix == 0) {
-        // 1 fois sur 3 se place derrière son prédecesseur
-        printf("choix 0\n");
+        // 1 fois sur 6 se place derrière son prédecesseur
         if (e->prev_line) {
             e->position = e->prev_line->position + 1;
             return 0;
         }
         else return 3;
     } else if (choix == 1) {
-        printf("choix 1\n");
         // 1 fois sur trois saute sur la ligne du dessus si elle est vide
         if (e->ligne < NB_LIGNES) {
 
@@ -212,9 +209,6 @@ int ActionFaineant(Jeu* jeu, Etudiant* e) {
                 return 3;
             } 
             if (curseur->position>=e->position) {
-                printf("les ennemis sont trop loin\n");
-                printf("position de l'ennemi derrière : %d\n", curseur->position);
-                e->next_line = curseur;
                 curseur->prev_line = e;
                 return 3;
             }
@@ -231,8 +225,6 @@ int ActionFaineant(Jeu* jeu, Etudiant* e) {
         }
         return 3;
     } else {
-        // ne fait rien (2/3)
-        printf("Le Fainéant reste immobile ce tour.\n");
         return 0;
     }
 }

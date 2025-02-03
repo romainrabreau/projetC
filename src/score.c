@@ -10,10 +10,13 @@ void AjouterAuScore(Jeu* jeu, Etudiant* e, Erreur* erreur) {
     if (e->type == 'Z') {
         jeu->score += 25;
     }
-    if (e->type == 'S') {
+    if (e->type == 'S'|| e->type == 'X') {
         jeu->score += 50;
     }
-    if (e->type == 'E' || e->type == 'D' || e->type == 'X' || e->type == 'F') {
+    if (e->type == 'F') {
+        jeu->score += 75;
+    }
+    if ( e->type == 'L' || e->type == 'D') {
         jeu->score += 100;
     }
 }

@@ -47,25 +47,30 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             // pas d'ennemis à attaquer pour cette tourelle
             continue;
         }
-        if ((char)t->type == 'T') {
+        if (t->type == 'T') {
             // tourelle de type basique
             e->pointsDeVie -= 1;
         }
-        if ((char)t->type ==  'L' && t->position == e->position - 1) {
+        if (t->type ==  'O' && t->position == e->position - 1) {
             // tourelle diplôme LSO mine
             e->pointsDeVie = 0;
             t->pointsDeVie = 0;
         }
-        if ((char)t->type == 'B') {
+        if (t->type == 'B') {
             // tourelle BU mur de défense
             // ne fait rien à l'ennemi
         }
-        if ((char)t->type == 'P') {
+        if (t->type == 'P') {
             // tourelle feuille de présence, immobilise l'ennemi pendant 2 tours
-            e->immobilisation = 2;
+            if (e->immobilisation > 0) {
+                continue;
+            }
+            if (e->tour%3 == 0) {
+                e->immobilisation = 1;
+            }
     
         }
-        if ((char)t->type == 'E') {
+        if (t->type == 'E') {
             // Tourelle E Lazard, dégat de zone
             Etudiant* e2 = jeu->etudiants;
             while (e2 != NULL) {
@@ -79,7 +84,7 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
         }
 
         if (e->pointsDeVie<=0) {
-            if ((char)e->type == 'S') {
+            if (e->type == 'S') {
                 // S syndicaliste, augmente de 2 la vitesse des ennemis adjacents quand il meurt
                 if (e->prev_line) {
                     e->prev_line->vitesse += 2;
@@ -108,7 +113,7 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
             return;
         }
 
-        if ((char)e->type == 'D'){
+        if (e->type == 'D'){
             // parcourt tous les étudiants sur la même ligne ou une zone de 2 cases devant
             Etudiant* e2 = jeu->etudiants;
             while (e2 != NULL) {
@@ -133,15 +138,15 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
             e = e->next;
             continue; 
         }
-        if ((char)e->type == 'Z' || (char)e->type == 'X' || (char)e->type == 'S' || (char)e->type == 'D') {
+        if (e->type == 'Z' || e->type == 'X' || e->type == 'S' || e->type == 'D') {
             // attaque de 1
             t->pointsDeVie -= 1;
         }
-        if ((char)e->type == 'L') {
+        if (e->type == 'L') {
             // plus gros dégâts, résistant mais très lent
             t->pointsDeVie -= 2;
         }
-        if ((char)e->type == 'F'){
+        if (e->type == 'F'){
             // fainéant, fait des sauts aléatoires ou ne bouge pas pendant plusieurs tours, attaque une fois sur deux
             int choix = rand() % 2;
             if (choix == 0) {
@@ -174,7 +179,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         // on garde next au cas où le chainage change
         Etudiant * next = e->next;
 
-        if ((char)e->type == 'F') {
+        if (e->type == 'F') {
             // Fainéant : comportement aléatoire
             if (e->position >= NB_EMPLACEMENTS ) {
                 // l'ennemi est sur la case d'apparition ou la dernière case
@@ -195,7 +200,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         while (t1) {
             // si pour cette tourelle l'ennemi est celui qu'elle devrait attaquer
             if (t1->ligne == e->ligne && t1->pointsDeVie > 0 && t1->position < e->position && e->prev_line == NULL) {
-                if ((char)t1->type == 'R') { // tourelle eduroam
+                if (t1->type == 'R') { // tourelle eduroam
                     if (e->position == NB_EMPLACEMENTS + 1) {
                         deplacement = 1;
                         t1 = t1->next;
@@ -253,7 +258,6 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         }
 
         e->position -= deplacement;
-        printf(" L'ennemi de type %c a avancé sur la ligne %d à la position %d\n", (char)e->type, e->ligne, e->position);
         e = next;
     }
 }
@@ -293,7 +297,15 @@ void JouerPartie(Jeu* jeu, Erreur* erreur) {
         printf("\n              ========== DÉBUT DU TOUR %d ==========\n\n", jeu->tour);
         AfficherPlateau(jeu);
         printf(ANSI_TEXTE_GRIS " Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
-        while ((getchar()) != '\n');
+        printf("        Appuyez sur Entrée pour continuer ou tapez 'S' pour sauvegarder et quitter : ");
+        char c = getchar();
+        if (c == 'S' || c == 's') {
+            while(getchar() != '\n'); 
+            SauvegarderPartie(jeu, erreur);
+            return;
+        }
+        while(getchar() != '\n'); 
+
 
         ResoudreActionsTourelles(jeu, erreur);
         if(erreur->statut_erreur) return;
@@ -338,9 +350,5 @@ void JouerPartie(Jeu* jeu, Erreur* erreur) {
             }
             break;
         }
-        
-        printf("    Fin du tour %d\n", jeu->tour);
-        printf(ANSI_TEXTE_GRIS" Appuyez sur Entrée pour continuer...\n"ANSI_RESET);
-        while ((getchar()) != '\n');
     }
 }

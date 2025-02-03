@@ -1,6 +1,6 @@
 #include "header.h"
 
-void IntroduireJeu(Erreur *erreur) {
+void IntroduireJeu() {
     printf("\n\n\n");
     printAvecDelai("        Cher membre de l’administration, bienvenue dans Licence vs Étudiant, le jeu dans lequel l’Université " ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_MOYEN "PSL -  Pixel Sciences et Logique" ANSI_RESET" est sous attaque ! \n", 15);
     printAvecDelai("        Votre but sera d’empêcher les Étudiants d’atteindre la Licence.\n", 15);
@@ -59,7 +59,7 @@ char* Menu(Erreur* erreur) {
     }
 
     printf("\n\n");
-    printAvecDelai("        " ANSI_BG_BLEU_FONCE "                                          ", 20);
+    printAvecDelai("\t\t\t\t\t\t\t" ANSI_BG_BLEU_FONCE "                                          ", 15);
     printf(ANSI_RESET"\n\n");
 
     static char chemin[MAX_NAME_LEN];

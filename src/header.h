@@ -106,11 +106,11 @@ typedef struct {
 } Jeu;
 
 // prototypes de fonctions du main
-char* Menu(Erreur* erreur);
 void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau);
 
 //prototypes de fonctions d'introduction 
-void IntroduireJeu(Erreur* erreur);
+void IntroduireJeu();
+char* Menu(Erreur* erreur);
 
 // prototypes de fonctions de gestion des ennemis
 const TypeEnnemi* trouverTypeEnnemi(char symbole);
@@ -144,7 +144,7 @@ void printAvecDelai(const char *text, int delai_ms);
 void BarreChargement(int ms);
 void AfficherTitre();
 void IntroMenu();
-void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur);
+void VisualiserEnnemis(Etudiant* etudiants);
 int AfficherChoix(char options[][MAX_NAME_LEN], int n_options, Erreur *err);
 
 // prototypes de fonctions de score

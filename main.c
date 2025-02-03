@@ -60,14 +60,15 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
 
 
     printf(ANSI_TEXTE_GRIS " Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
-    getchar();
+    while (getchar() != '\n');
 
-    VisualiserEnnemis(jeu->etudiants, erreur);
+    fflush(stdout);
+    VisualiserEnnemis(jeu->etudiants);
     if (erreur->statut_erreur) return;
 
 
     printf(ANSI_TEXTE_GRIS" Appuyez sur Entrée pour continuer...\n"ANSI_RESET);
-    getchar();
+    while (getchar() != '\n');
     printf(ANSI_BG_GRIS_CLAIR ANSI_TEXTE_BLEU_FONCE "       ❃  Configuration des défenses en cours...         "ANSI_RESET"\n\n");
 
     // cagnotte est modifée par InitialisationTourelles et prend la valeur de la somme restante
@@ -114,7 +115,8 @@ int main() {
     scanf("%49s", pseudo);
     while (getchar() != '\n');
 
-    IntroduireJeu(&erreur);
+    IntroduireJeu();
+
 
     // Boucle de parties 
     while (1) {

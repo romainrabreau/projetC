@@ -3,11 +3,11 @@
 
 const TypeTourelle TYPES_TOURELLES[] = {
     // symbole, points de vie, prix, nom, description
-    {'T', 3, 80, "Tableau noir", "Tourelle de base, envoie des craies sur les étudiants"},
-    {'L', 1, 80, "Diplôme LSO", "Tourrelle mine, explose au contact et détruit l'étudiant puis s'auto-détruit"},
+    {'T', 3, 80, "Tableau noir", "Tourelle de base, envoie des craies sur les étudiants, fait un dégat de 1"},
+    {'O', 1, 40, "Diplôme LSO", "Tourrelle mine, explose au contact et détruit l'étudiant puis s'auto-détruit"},
     {'B', 10, 120, "BU", "Maxi mur de livres, ralentit les étudiants"},
     {'P', 2, 200, "Feuille de présence", "Immobilise l'étudiant pendant 2 tours"},
-    {'E', 2, 300, "Emmanuel Lazard", "Multi-dégâts sur 3 lignes en même temps"},
+    {'E', 2, 200, "Emmanuel Lazard", "Dégâts de zone sur 3 lignes en même temps et 3 cases devant"},
     {'R', 1, 160, "Eduroam", "Comportement aléatoire, une fois sur trois, l'ennemi recule, avance de 1, ou avance de 2"},
 };
 
@@ -37,9 +37,7 @@ const TypeTourelle* trouverTypeTourelle(char symbole) {
    - Demande à l'utilisateur de positionner ses tourelles
    - Retourne la liste chaînée de tourelles créées
  */
-
 Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
-
     // on stocke le tableau d'affichage des caractéristiques, on a 4 lignes par tourelle
     char lignesTourelles[NB_TYPES_TOURELLES * 4][256];
 
@@ -94,22 +92,10 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
 
         printf("\n");
     }
-    /*
-    printf("Voici les tourelles disponibles ainsi que leurs caractéristiques :\n\n");
-    for (int i = 0; i < NB_TYPES_TOURELLES; i++) {
-        printf(ANSI_BG_BLEU_MEGA_LIGHT "%c" ANSI_RESET " : " ANSI_TEXTE_BLEU_FONCE "%s\n" ANSI_RESET, TYPES_TOURELLES[i].symbole, TYPES_TOURELLES[i].nom);
-        printf("    ⟡ Points de vie : " ANSI_TEXTE_BLEU_MOYEN "%d\n" ANSI_RESET, TYPES_TOURELLES[i].pointsDeVie);
-        printf("    ∞ Prix : " ANSI_TEXTE_BLEU_MOYEN "%d ECTS\n\n" ANSI_RESET, TYPES_TOURELLES[i].prix);
-
-    }*/
 
     printf(ANSI_TEXTE_GRIS "Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
-    getchar();
-
-    printf("     𓆉  Certaines tourelles ont des caractéristiques spéciales, notamment : \n\n");
-    printf("    blabla tourelles\n");
-    printf(ANSI_TEXTE_GRIS "Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
-    printf("\n    Il vous faut maintenant placer les tourellles de défense sur les emplacements de votre choix.\n");
+    while (getchar() != '\n');
+    printf("\n    𓆉  Il vous faut maintenant placer les tourellles de défense sur les emplacements de votre choix.\n");
     printf("        Vous avez à défendre %d lignes, avec %d positions par ligne \n\n", NB_LIGNES, NB_EMPLACEMENTS);
 
     printf("        Si vous souhaitez placer des tourelles sur la ligne proposée, entrez [SYMBOLE_X] [EMPLACEMENT_1], [SYMBOLE_Y] [EMPLACEMENT_2], ...\n");
@@ -149,7 +135,7 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
             i--;
             continue;
         }
-        if (cout_total == *cagnotte) {
+        if (cout_total > *cagnotte) {
             printf("Vous avez dépassé le solde de votre cagnotte de " ANSI_BG_BLEU_MEGA_LIGHT "%d ECTS" ANSI_RESET", replacez s.v.p.\n", cout_total - *cagnotte);
             i--;
             continue;
@@ -251,7 +237,7 @@ Tourelle* AjouterTourelles(Tourelle* * premier, Tourelle* dernier, char* ligne_t
     char symbole;
     int position;
     int nb_matchs;
-    // pointeur vers la paire symbole positioncourante
+    // pointeur vers la paire symbole position courante
     char* ptr = ligne_tourelles;
     
     while ((nb_matchs = sscanf(ptr, " %c %d", &symbole, &position)) == 2) {

@@ -103,19 +103,21 @@ int AfficherChoix(char options[][MAX_NAME_LEN], int n_options, Erreur *err) {
 
         int entree;
         
-        while (scanf("%d", &entree) != 1 || entree < 1 || entree > n_options) {
-            printf("\t\t\t\t\t\t\tOption invalide. Veuillez entrer un nombre entre 1 et %d.\n", n_options);
-            fflush(stdin);
+        if (scanf("%d", &entree) != 1 || entree < 1 || entree > n_options) {
+                printf("\t\t\t\t\t\t\tOption invalide. Veuillez entrer un nombre entre 1 et %d.\n", n_options);
+                while (getchar() != '\n');
+                
+            }
+        else {
+            choix = entree - 1;
+            break;
         }
-        choix = entree - 1;
-        fflush(stdin);
-        break; 
     }
     return choix;
 }
 
 
-void VisualiserEnnemis(Etudiant* etudiants, Erreur* erreur) {
+void VisualiserEnnemis(Etudiant* etudiants) {
     printf("\n");
     printf(ANSI_TEXTE_BLEU_MOYEN "Vagues d'ennemis selon les tours et les lignes :" ANSI_RESET "\n\n");
 
