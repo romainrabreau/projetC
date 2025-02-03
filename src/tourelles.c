@@ -279,9 +279,10 @@ Tourelle* AjouterTourelles(Tourelle* * premier, Tourelle* dernier, char* ligne_t
 
 
 void LibererTourelles(Tourelle* premier) {
+    Tourelle* courant;
     while (premier != NULL) {
-        Tourelle* temp = premier;
+        courant = premier;
         premier = premier->next;
-        free(temp);
+        free(courant);
     }
 }

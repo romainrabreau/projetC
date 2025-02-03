@@ -296,8 +296,7 @@ void JouerPartie(Jeu* jeu, Erreur* erreur) {
         printf("\033[2J");
         printf("\n              ========== DÉBUT DU TOUR %d ==========\n\n", jeu->tour);
         AfficherPlateau(jeu);
-        printf(ANSI_TEXTE_GRIS " Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
-        printf("        Appuyez sur Entrée pour continuer ou tapez 'S' pour sauvegarder et quitter : ");
+        printf(ANSI_TEXTE_GRIS"        Appuyez sur Entrée pour continuer ou tapez 'S' pour sauvegarder et quitter : "ANSI_RESET);
         char c = getchar();
         if (c == 'S' || c == 's') {
             while(getchar() != '\n'); 

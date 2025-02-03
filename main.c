@@ -61,12 +61,13 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
     printf("◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆◆\n");
 
 
-    printf(ANSI_TEXTE_GRIS " Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
-    while (getchar() != '\n');
-
     fflush(stdout);
+    printf(ANSI_TEXTE_GRIS " Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
+    getchar();
+
     VisualiserEnnemis(jeu->etudiants);
     if (erreur->statut_erreur) return;
+    fflush(stdout);
 
 
     printf(ANSI_TEXTE_GRIS" Appuyez sur Entrée pour continuer...\n"ANSI_RESET);

@@ -129,10 +129,11 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
 
 // libère dynamiquement la mémoire allouée pour les ennemis
 void LibererEnnemis(Etudiant* premier) {
+    Etudiant* courant;
     while (premier != NULL) {
-        Etudiant* courant = premier;
-        free(courant);
+        courant = premier;
         premier = premier->next;
+        free(courant);
     }
 }
 
