@@ -48,7 +48,7 @@ void SauvegarderPartie(Jeu* jeu, Erreur *erreur) {
     if (erreur->statut_erreur) {
         return;
     }
-    char cheminSauvegarde[MAX_NAME_LEN];
+    char cheminSauvegarde[MAX_NAME_LEN + 100];
     snprintf(cheminSauvegarde, sizeof(cheminSauvegarde), "Sauvegardes/%s_(%s)_%s_save.txt", baseName, jeu->pseudo, nomSauvegarde);
 
     FILE *f = fopen(cheminSauvegarde, "w");

@@ -54,7 +54,7 @@ void AjouterAuLeaderboard(Jeu *jeu, Erreur *erreur) {
     if (pos >= 0 && strcmp(nomBase + pos, ".txt") == 0)
         nomBase[pos] = '\0';
 
-    char cheminSauvegarde[MAX_NAME_LEN] = {0};
+    char cheminSauvegarde[MAX_NAME_LEN + 100] = {0};
     snprintf(cheminSauvegarde, sizeof(cheminSauvegarde), "data_leaderboard/%s_leaderboard.txt", nomBase);
 
     int capacite = MAX_SCORES;     

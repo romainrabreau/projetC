@@ -18,6 +18,8 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
         return;
     }
 
+    
+    erreur->msg_erreur[0] = '\0';
     // on lit le fichier de niveau fourni
     FILE* fichier = fopen(chemin_niveau, "r");
     if (!fichier) {
@@ -132,6 +134,7 @@ int main() {
             continue;
         }
 
+        erreur.msg_erreur[0] = '\0';
         Jeu jeu;
         char chemin[256];
         
