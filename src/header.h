@@ -124,6 +124,7 @@ int ActionFaineant(Jeu* jeu, Etudiant* e);
 Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur);
 int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur);
 void LibererTourelles(Tourelle* premier);
+void SupprimerTourelle(Jeu* jeu, Erreur* erreur, Tourelle* tourelle);
 Tourelle* AjouterTourelles(Tourelle* * premier, Tourelle* dernier, char* ligne_tourelles, int ligne, Erreur* erreur);
 
 // fonctions d'aide

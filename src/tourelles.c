@@ -286,3 +286,30 @@ void LibererTourelles(Tourelle* premier) {
         free(courant);
     }
 }
+
+void SupprimerTourelle(Jeu* jeu, Erreur* erreur, Tourelle* tourelle) {
+    if (!tourelle || !jeu) {
+        erreur->statut_erreur=1;
+        strcpy(erreur->msg_erreur, "Erreur d'accès à la donnée de l'ennemi\n");
+    }
+
+    // chainage
+    if (tourelle == jeu->tourelles) {
+        // premiere de la liste
+        jeu->tourelles = tourelle->next;
+    } else {
+        // on trouve la tourelle précédente
+        Tourelle* prec = jeu->tourelles;
+        while (prec && prec->next != tourelle) {
+            prec = prec->next;
+        }
+        if (!prec) {
+            erreur->statut_erreur = 1;
+            strcpy(erreur->msg_erreur, "Impossible de supprimer la tourelle : ennemi introuvable\n");
+            return;
+        }
+        prec->next = tourelle->next;
+    }
+
+    free(tourelle);
+}

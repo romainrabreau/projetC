@@ -140,8 +140,10 @@ void LibererEnnemis(Etudiant* premier) {
 void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
 
     if (!ennemi || !jeu) {
-        erreur->statut_erreur=1;
-        strcpy(erreur->msg_erreur, "Erreur d'accès à la donnée de l'ennemi\n");
+        if (erreur) {
+            erreur->statut_erreur=1;
+            strcpy(erreur->msg_erreur, "Erreur d'accès à la donnée de l'ennemi\n");
+        }
     }
     // comptabiliser ennemi supprimé pour le score
     AjouterAuScore(jeu, ennemi, erreur);

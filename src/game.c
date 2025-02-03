@@ -28,13 +28,9 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
     // inflige des dégâts aux ennemis en fonction du type de tourelle
     Tourelle* t = jeu->tourelles;
     while (t != NULL) {
-        if (t->pointsDeVie <= 0) {
-            // la tourelle est morte
-            t = t->next;
-            continue;
-        }
         Etudiant* e = jeu->etudiants;
         if (e == NULL) {
+            printf("Pas d'ennemis à attaquer pour dans le jeu\n");
             return;
         }
 
@@ -43,6 +39,7 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             e = e->next;
         }
         if (e == NULL) {
+            printf("Pas d'ennemis à attaquer pour cette tourelle\n");
             t = t->next;
             // pas d'ennemis à attaquer pour cette tourelle
             continue;
@@ -94,6 +91,9 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
                 }
             }
             SupprimerEnnemi(jeu, erreur, e);
+            if (erreur->statut_erreur==1) {
+                return;
+            }
         }
         t = t->next;
     }
@@ -104,7 +104,8 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
 void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
     Etudiant* e = jeu->etudiants;
     while (e != NULL) {
-        if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS + 1) {
+        printf("ResoudreActionsEnnemis\n");
+        if (e->position > NB_EMPLACEMENTS + 1) {
             e = e->next;
             continue;
         }
@@ -153,6 +154,12 @@ void ResoudreActionsEnnemis(Jeu* jeu, Erreur* erreur) {
                 t->pointsDeVie -= 1;
             }
         }
+        if (t->pointsDeVie <= 0) {
+            SupprimerTourelle(jeu, erreur, t);
+            if (erreur->statut_erreur==1) {
+                return;
+            }
+        }
             
         e = e->next;
     }
@@ -165,7 +172,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
     Etudiant* e = jeu->etudiants;
     while (e) {
         // deplace indique si le fainéant a déjà bougé pendant ce tour
-        if (e->pointsDeVie <= 0 || e->position > NB_EMPLACEMENTS +1 || e->deplace == 1) {
+        if (e->position > NB_EMPLACEMENTS +1 || e->deplace == 1) {
             e = e->next;
             continue;
         }
@@ -199,7 +206,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         Tourelle* t1 = jeu->tourelles;
         while (t1) {
             // si pour cette tourelle l'ennemi est celui qu'elle devrait attaquer
-            if (t1->ligne == e->ligne && t1->pointsDeVie > 0 && t1->position < e->position && e->prev_line == NULL) {
+            if (t1->ligne == e->ligne && t1->position < e->position && e->prev_line == NULL) {
                 if (t1->type == 'R') { // tourelle eduroam
                     if (e->position == NB_EMPLACEMENTS + 1) {
                         deplacement = 1;
@@ -247,7 +254,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         Tourelle* t = jeu->tourelles;
         while (t) {
             // vérifie si la tourelle est sur la même ligne, si elle est vivante, si elle est devant l'ennemi et si elle est sur la trajectoire
-            if (t->ligne == e->ligne && t->pointsDeVie > 0 && t->position < e->position && t->position >= e->position - deplacement) {
+            if (t->ligne == e->ligne && t->position < e->position && t->position >= e->position - deplacement) {
                 int deplacement_possible = e->position - t->position - 1;
                 if (deplacement_possible < deplacement) {
                     // on garde le pire cas
@@ -257,6 +264,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
             t = t->next;
         }
 
+        printf("l'ennemi de type %c à la ligne %d en position %d se déplace de %d\n", e->type, e->ligne, e->position, deplacement);
         e->position -= deplacement;
         e = next;
     }
@@ -264,11 +272,14 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
 
 int PartiePerdue(Jeu* jeu) {
     Etudiant* e = jeu->etudiants;
+    Etudiant* next;
     while (e) {
+        next = e->next;
         // si l'ennemi a atteint le bout de la ligne
         if(e->position <= 0) return 1;
+        if (e->pointsDeVie <= 0) SupprimerEnnemi(jeu, NULL, e);
         e->deplace = 0; // on réinitialise le compteur de déplacement
-        e = e->next;
+        e = next;
     }
     return 0;
 }

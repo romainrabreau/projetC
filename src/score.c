@@ -190,7 +190,7 @@ void AfficherLeaderboard(const char *nomLeaderboard, Erreur *erreur) {
             else if (rang == 3)
                 medaille = "✩✩✩ ";
             // Affiche le rang, la médaille (si applicable), le pseudo et le score, avec mise en forme
-            printf("\t\t\t\t\t\t\t\033[37m%2d. %s%-25s \033[32m%5d pts" ANSI_RESET "\n", rang, medaille, pseudoBuf, score);
+            printf("\t\t\t\t\t\t\t%2d. %s%-25s \033[32m%5d pts" ANSI_RESET "\n", rang, medaille, pseudoBuf, score);
             rang++; // Incrémente le rang pour le score suivant
         }
         fclose(fichier);
@@ -201,7 +201,6 @@ void AfficherLeaderboard(const char *nomLeaderboard, Erreur *erreur) {
         erreur->statut_erreur = 1;
         strcpy(erreur->msg_erreur, "Fichier de scores introuvable.");
     }
-    printf(ANSI_TEXTE_GRIS "\n\n\t\t\t\t\t\t\tAppuyez sur Entrree pour continuer...]" ANSI_RESET "");
     fflush(stdout);
     while(getchar() != '\n');
 }

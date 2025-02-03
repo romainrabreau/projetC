@@ -63,7 +63,7 @@ void PreparerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_niveau) {
 
     fflush(stdout);
     printf(ANSI_TEXTE_GRIS " Appuyez sur Entrée pour continuer...\n" ANSI_RESET);
-    getchar();
+    while (getchar() != '\n');
 
     VisualiserEnnemis(jeu->etudiants);
     if (erreur->statut_erreur) return;
@@ -118,7 +118,7 @@ int main() {
     scanf("%49s", pseudo);
     while (getchar() != '\n');
 
-    IntroduireJeu();
+    //IntroduireJeu();
 
 
     // Boucle de parties 
@@ -137,7 +137,7 @@ int main() {
 
         erreur.msg_erreur[0] = '\0';
         Jeu jeu;
-        char chemin[256];
+        char chemin[MAX_NAME_LEN];
         
         strncpy(chemin, cheminPartie, sizeof(chemin) - 1);
         chemin[sizeof(chemin) - 1] = '\0';
