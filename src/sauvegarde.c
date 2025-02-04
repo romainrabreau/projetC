@@ -59,6 +59,7 @@ void SauvegarderPartie(Jeu* jeu, Erreur *erreur) {
     }
     fprintf(f, "Tour %d\n", jeu->tour);
     fprintf(f, "Cagnotte %d\n", jeu->cagnotte);
+    fprintf(f, "Score %d\n", jeu->score);
     fprintf(f, "Pseudo %s\n", jeu->pseudo);
 
     int nbTourelles = 0;
@@ -111,13 +112,19 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
     if (fscanf(fichier, "Tour %d\n", &jeu->tour) != 1) { // Lit le numéro du tour
         fclose(fichier); // Ferme le fichier
         erreur->statut_erreur = 1; // Définit le statut d'erreur
-        strcpy(erreur->msg_erreur, "Format de tour invalide"); // Message d'erreur
+        strcpy(erreur->msg_erreur, "Format de tour dans le fichier de sauvegarde invalide"); // Message d'erreur
         return;
     }
     if (fscanf(fichier, "Cagnotte %d\n", &jeu->cagnotte) != 1) { // Lit la cagnotte
         fclose(fichier);
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Format de cagnotte invalide");
+        strcpy(erreur->msg_erreur, "Format de cagnotte dans le fichier de sauvegarde invalide");
+        return;
+    }
+    if (fscanf(fichier, "Score %d\n", &jeu->score) != 1) { // Lit le score
+        fclose(fichier);
+        erreur->statut_erreur = 1;
+        strcpy(erreur->msg_erreur, "Format de score dans le fichier de sauvegarde invalide");
         return;
     }
     {   // Lit le pseudo sauvegardé et le copie dans jeu->pseudo
@@ -125,7 +132,7 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
         if (fscanf(fichier, "Pseudo %49[^\n]\n", pseudoSauvegarde) != 1) {
             fclose(fichier);
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Format de pseudo invalide");
+            strcpy(erreur->msg_erreur, "Format de pseudo dans le fichier de sauvegarde invalide");
             return;
         }
         strncpy(jeu->pseudo, pseudoSauvegarde, sizeof(jeu->pseudo) - 1);
@@ -135,7 +142,7 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
     if (fscanf(fichier, "NbTourelles %d\n", &nbTourelles) != 1) { // Lit le nombre de tourelles
         fclose(fichier);
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Format du nombre de tourelles invalide");
+        strcpy(erreur->msg_erreur, "Format du nombre de tourelles dans le fichier de sauvegarde invalide");
         return;
     }
     jeu->tourelles = NULL;
@@ -146,7 +153,7 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
         if (fscanf(fichier, "Tourelle %c %d %d %d %d\n", &type, &pointsDeVie, &ligne, &position, &prix) != 5) {
             fclose(fichier);
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Format d'une tourelle invalide");
+            strcpy(erreur->msg_erreur, "Format d'une tourelle dans le fichier de sauvegarde invalide");
             return;
         }
         Tourelle *nouvelle = malloc(sizeof(Tourelle)); // Alloue la mémoire pour une tourelle (allocation conservée)
@@ -167,7 +174,7 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
     if (fscanf(fichier, "NbEtudiants %d\n", &nbEtudiants) != 1) { // Lit le nombre d'étudiants
         fclose(fichier);
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Format du nombre d'étudiants invalide");
+        strcpy(erreur->msg_erreur, "Format du nombre d'étudiants dans le fichier de sauvegarde invalide");
         return;
     }
     jeu->etudiants = NULL;
@@ -179,7 +186,7 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
                    &type, &pointsDeVie, &ligne, &position, &vitesse, &tourEnnemi, &immobilisation) != 7) {
             fclose(fichier);
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Format d'un étudiant invalide");
+            strcpy(erreur->msg_erreur, "Format d'un étudiant dans le fichier de sauvegarde invalide");
             return;
         }
         Etudiant *nouvel = malloc(sizeof(Etudiant)); // Alloue la mémoire pour un étudiant (allocation conservée)

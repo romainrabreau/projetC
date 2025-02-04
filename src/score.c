@@ -200,7 +200,7 @@ void AfficherLeaderboard(const char *nomLeaderboard, Erreur *erreur) {
     } else {
         erreur->statut_erreur = 1;
         strcpy(erreur->msg_erreur, "Fichier de scores introuvable.");
-    }
+    } 
     fflush(stdout);
     while(getchar() != '\n');
 }

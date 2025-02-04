@@ -34,12 +34,24 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
             return;
         }
 
+        if (t->type == 'E') {
+            // Tourelle E Lazard, dégat de zone
+            Etudiant* e2 = jeu->etudiants;
+            while (e2 != NULL) {
+                if ((e2->ligne >= t->ligne - 1 && e2->ligne <= t->ligne + 1) &&
+                    (e2->position <= t->position + 4) &&
+                     e2->position >= t->position) {
+                    e2->pointsDeVie -= 1;
+                }
+                e2 = e2->next;
+            }
+        }
+
         while (e != NULL && !(e->ligne == t->ligne && e->pointsDeVie > 0 && e->position <= NB_EMPLACEMENTS + 1 && e->position > t->position)) {
-            // on cherche l'ennemi à attaquer, sur la même ligne, vivant, devant la tourelle
+            // on cherche l'ennemi à attaquer, sur la même ligne, vivant, devant la tourelle, pour les tourelles qui attaquent devant elles
             e = e->next;
         }
         if (e == NULL) {
-            printf("Pas d'ennemis à attaquer pour cette tourelle\n");
             t = t->next;
             // pas d'ennemis à attaquer pour cette tourelle
             continue;
@@ -66,18 +78,6 @@ void ResoudreActionsTourelles(Jeu* jeu, Erreur* erreur) {
                 e->immobilisation = 1;
             }
     
-        }
-        if (t->type == 'E') {
-            // Tourelle E Lazard, dégat de zone
-            Etudiant* e2 = jeu->etudiants;
-            while (e2 != NULL) {
-                if ((e2->ligne >= t->ligne - 1 && e2->ligne <= t->ligne + 1) &&
-                    (e2->position <= t->position + 4) &&
-                     e->position > t->position) {
-                    e2->pointsDeVie -= 1;
-                }
-                e2 = e2->next;
-            }
         }
 
         if (e->pointsDeVie<=0) {
@@ -265,6 +265,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         }
 
         printf("l'ennemi de type %c à la ligne %d en position %d se déplace de %d\n", e->type, e->ligne, e->position, deplacement);
+        printf("il lui reste %d points de vie\n", e->pointsDeVie);
         e->position -= deplacement;
         e = next;
     }
@@ -272,25 +273,26 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
 
 int PartiePerdue(Jeu* jeu) {
     Etudiant* e = jeu->etudiants;
-    Etudiant* next;
     while (e) {
-        next = e->next;
         // si l'ennemi a atteint le bout de la ligne
         if(e->position <= 0) return 1;
-        if (e->pointsDeVie <= 0) SupprimerEnnemi(jeu, NULL, e);
         e->deplace = 0; // on réinitialise le compteur de déplacement
-        e = next;
+        e = e->next;
     }
     return 0;
 }
 
 int PartieGagnee(Jeu* jeu) {
     Etudiant* e = jeu->etudiants;
+    Etudiant* next;
     while (e) {
         if (e->pointsDeVie > 0) {
             return 0; // il reste un ennemi en vie
         }
-        e = e->next;
+        next = e->next;
+        // s'il reste un ennemi mort à supprimer
+        if (e->pointsDeVie <= 0) SupprimerEnnemi(jeu, NULL, e);
+        e = next;
     }
     return 1;
 }
@@ -326,17 +328,6 @@ void JouerPartie(Jeu* jeu, Erreur* erreur) {
         DeplacerEnnemis(jeu, erreur);
         if(erreur->statut_erreur) return;
 
-        if(PartiePerdue(jeu)) {
-            printf("\033[0;0H"); 
-            printf("\033[2J");
-            jeu->score = 0;
-            printf("         "ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC"  Fin de Partie   " ANSI_RESET "\n\n\n");
-            AfficherPlateau(jeu);
-            printAvecDelai("\n         "ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC"  Vous avez perdu... Les étudiants ont pris l'université.  "ANSI_RESET"\n", 50);
-            while ((getchar()) != '\n');
-            break;
-        }
-
         if(PartieGagnee(jeu)) {
             printf("\033[0;0H"); 
             printf("\033[2J");
@@ -358,6 +349,17 @@ void JouerPartie(Jeu* jeu, Erreur* erreur) {
                 jeu->fichier_ennemis[sizeof(jeu->fichier_ennemis) - 1] = '\0';
                 AfficherLeaderboard(jeu->fichier_ennemis, erreur);
             }
+            break;
+        }
+
+        if(PartiePerdue(jeu)) {
+            printf("\033[0;0H"); 
+            printf("\033[2J");
+            jeu->score = 0;
+            printf("         "ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC"  Fin de Partie   " ANSI_RESET "\n\n\n");
+            AfficherPlateau(jeu);
+            printAvecDelai("\n         "ANSI_BG_VERT_FONCE ANSI_TEXTE_BLANC"  Vous avez perdu... Les étudiants ont pris l'université.  "ANSI_RESET"\n", 50);
+            while ((getchar()) != '\n');
             break;
         }
     }

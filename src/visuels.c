@@ -88,7 +88,7 @@ int AfficherChoix(char options[][MAX_NAME_LEN], int n_options, Erreur *err) {
         // Liste des options
         for (int i = 0; i < n_options; ++i) {
             printf("\t\t\t\t\t\t\t");
-            printf(ANSI_TEXTE_BLEU_MOYEN "   %d. %s\n"ANSI_RESET, i + 1, options[i]);
+            printf(ANSI_TEXTE_BLEU_FONCE "   %d. %s\n"ANSI_RESET, i + 1, options[i]);
         }
 
         // barrière du bas
