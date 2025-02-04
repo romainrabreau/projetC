@@ -205,7 +205,6 @@ void RelancerPartie(Erreur* erreur, Jeu* jeu, const char* chemin_save) {
         dernierEtudiant = nouvel; // Met à jour le dernier pointeur
     }
     fclose(fichier); // Ferme le fichier après lecture
-    jeu->score = 0; // Initialise le score
     AnimerAttente(500, "Partie relancée !"); // Animation de fin de relance
 
     // Mise à jour de fichier_ennemis : on extrait le nom du fichier sans répertoires pour éviter un doublon dans le leaderboard

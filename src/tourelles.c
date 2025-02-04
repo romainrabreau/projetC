@@ -6,8 +6,8 @@ const TypeTourelle TYPES_TOURELLES[] = {
     {'T', 3, 80, "Tableau noir", "Tourelle de base, envoie des craies sur les étudiants, fait un dégat de 1"},
     {'O', 1, 40, "Diplôme LSO", "Tourrelle mine, explose au contact et détruit l'étudiant puis s'auto-détruit"},
     {'B', 10, 120, "BU", "Maxi mur de livres, ralentit les étudiants"},
-    {'P', 2, 200, "Feuille de présence", "Immobilise l'étudiant pendant 2 tours"},
-    {'E', 2, 200, "Emmanuel Lazard", "Dégâts de zone sur 3 lignes en même temps et 3 cases devant"},
+    {'P', 2, 120, "Feuille de présence", "Immobilise l'étudiant pendant 2 tours"},
+    {'E', 2, 150, "Emmanuel Lazard", "Dégâts de zone sur 3 lignes en même temps et 3 cases devant"},
     {'R', 1, 100, "Eduroam", "Comportement aléatoire, une fois sur trois, l'ennemi recule, avance de 1, ou avance de 2"},
 };
 
@@ -138,12 +138,12 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
             continue;
         }
         if (cout_total > *cagnotte) {
-            printf("Vous avez dépassé le solde de votre cagnotte de " ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_MOYEN "%d ECTS" ANSI_RESET", replacez s.v.p.\n", cout_total - *cagnotte);
+            printf("Vous avez dépassé le solde de votre cagnotte de " ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE "%d ECTS" ANSI_RESET", replacez s.v.p.\n", cout_total - *cagnotte);
             i--;
             continue;
         }
         else {
-            printf("Vous avez dépensé " ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_MOYEN "%d ECTS" ANSI_RESET" pour cette ligne\n", cout_total);
+            printf("Vous avez dépensé " ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_FONCE "%d ECTS" ANSI_RESET" pour cette ligne\n", cout_total);
             *cagnotte -= cout_total;
             //met à jour le premier et le dernier de la liste chaînée
             dernier = AjouterTourelles(&premier, dernier, ligne_tourelles, i, erreur);

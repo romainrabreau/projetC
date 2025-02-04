@@ -171,20 +171,26 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
     // déplace les ennemis en fonction de leur vitesse, prend en compte les collisions
     Etudiant* e = jeu->etudiants;
     while (e) {
+        Etudiant * next = e->next;
+        if (e->pointsDeVie <= 0) {
+            SupprimerEnnemi(jeu, erreur, e);
+            e = next;
+            if (erreur->statut_erreur == 1) return;
+            continue;
+        }
         // deplace indique si le fainéant a déjà bougé pendant ce tour
         if (e->position > NB_EMPLACEMENTS +1 || e->deplace == 1) {
-            e = e->next;
+            e = next;
             continue;
         }
         // action de la feuille de présence
         if (e->immobilisation > 0) {
             e->immobilisation--;
-            e = e->next;
+            e = next;
             continue;
         }
         int deplacement = e->vitesse;
         // on garde next au cas où le chainage change
-        Etudiant * next = e->next;
 
         if (e->type == 'F') {
             // Fainéant : comportement aléatoire
