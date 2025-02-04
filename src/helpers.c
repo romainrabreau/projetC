@@ -3,7 +3,7 @@
 void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
     if (fichier_ennemis == NULL) {
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "fichier invalide\n");
+        strcpy(erreur->msg_erreur, "fichier invalide");
         return;
     }
 
@@ -19,23 +19,23 @@ void ResoudreFichier(FILE* fichier_ennemis, Erreur* erreur) {
         char type;
         if (sscanf(ligne_fichier, "%d %d %c", &tour, &ligne, &type) != 3) {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "format de ligne invalide\n");
+            strcpy(erreur->msg_erreur, "format de ligne invalide");
             return;
         }
 
         if (ligne < 1 || ligne > NB_LIGNES || tour < 0){
             erreur->statut_erreur = 1;
-            sprintf(erreur->msg_erreur, "le tour ou la ligne entré(e) est invalide : %d\n", ligne);
+            sprintf(erreur->msg_erreur, "le tour ou la ligne entré(e) est invalide : %d", ligne);
             return;
         }
         if (tour < tour_courant) {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "l'apparition des ennemis n'est pas triée par tour\n");
+            strcpy(erreur->msg_erreur, "l'apparition des ennemis n'est pas triée par tour");
             return;
         }
         if (tour == tour_courant && ligne <= ligne_courante) {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "l'apparition des ennemis n'est pas triée par ligne\n");
+            strcpy(erreur->msg_erreur, "l'apparition des ennemis n'est pas triée par ligne");
             return;
         }
         tour_courant = tour;

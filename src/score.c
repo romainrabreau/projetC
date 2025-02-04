@@ -4,7 +4,7 @@
 void AjouterAuScore(Jeu* jeu, Etudiant* e, Erreur* erreur) {
     if (e == NULL) {
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Etudiant inexistant : pas de score à ajouter.\n");
+        strcpy(erreur->msg_erreur, "Etudiant inexistant : pas de score à ajouter.");
         return;
     }
     if (e->type == 'Z') {

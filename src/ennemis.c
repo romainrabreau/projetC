@@ -3,10 +3,10 @@
 
 const TypeEnnemi TYPES_ENNEMIS[] = {
     // symbole, points de vie, vitesse, nom, description
-    {'Z', 3, 2, "Étudiant", "Étudiant de base, avance à moitié endormi, fait 1 dégât"},
-    {'L', 8, 1, "Étudiant L1", "Résistant mais aussi le plus lent, fait de gros dégâts de 3"},
-    {'X', 2, 4, "Étudiant Talent", "Plus rapide, moins résistant, dégât de 2"},
-    {'S', 3, 1, "Syndicaliste", "Augmente la vitesse des ennemis adjacents de sa ligne lorsqu'il meurt, fait 2 dégât"},
+    {'Z', 5, 2, "Étudiant", "Étudiant de base, avance à moitié endormi, fait 1 dégât"},
+    {'L', 9, 1, "Étudiant L1", "Résistant mais aussi le plus lent, fait de gros dégâts de 3"},
+    {'X', 3, 4, "Étudiant Talent", "Plus rapide, moins résistant, dégât de 2"},
+    {'S', 4, 1, "Syndicaliste", "Augmente la vitesse des ennemis adjacents de sa ligne lorsqu'il meurt, fait 2 dégât"},
     {'F', 6, 3, "Fainéant", "Fait des sauts aléatoires (parfois sur la ligne d'en dessous) ou ne bouge pas pendant plusieurs tours, résistant, fait 1 dégât une fois sur deux"},
     {'D', 6, 1, "Doctorant", "Résistant et soigne les ennemis de 1 PV par tour sur une zone de 3 cases et 3 lignes, fait 1 dégât"}
 };
@@ -28,7 +28,7 @@ const TypeEnnemi* VerifType(int *tour, int *ligne, char *symbole, Erreur *erreur
     const TypeEnnemi* type_ennemi = trouverTypeEnnemi(*symbole);
     if (type_ennemi == NULL) {
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "type d'ennemi invalide\n");
+        strcpy(erreur->msg_erreur, "type d'ennemi invalide");
         return NULL;
     }
     return type_ennemi;
@@ -40,7 +40,7 @@ const TypeEnnemi* VerifType(int *tour, int *ligne, char *symbole, Erreur *erreur
 Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur) {
     if (fichier_ennemis == NULL) {
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "le fichier n'a pas pu être ouvert\n");
+        strcpy(erreur->msg_erreur, "le fichier n'a pas pu être ouvert");
         return NULL;
     }
 
@@ -68,7 +68,7 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         // pour chaque ligne on veut avoir trois valeurs corrcetes
         if (sscanf(ligne_fichier, "%d %d %c", &tour, &num_ligne, &symbole_type) != 3) {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "format de ligne invalide\n");
+            strcpy(erreur->msg_erreur, "format de ligne invalide");
             return NULL;
         }
         // obtenir type d'ennemi à partir du symbole correspondant
@@ -82,7 +82,7 @@ Etudiant* InitialisationEnnemis(FILE* fichier_ennemis, Jeu* jeu, Erreur* erreur)
         Etudiant* nouvel_etudiant = (Etudiant*)malloc(sizeof(Etudiant));
         if (nouvel_etudiant == NULL) {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "erreur d'allocation mémoire (ennemi)\n");
+            strcpy(erreur->msg_erreur, "erreur d'allocation mémoire (ennemi)");
             LibererEnnemis(premier);
             return NULL;
         }
@@ -142,7 +142,7 @@ void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
     if (!ennemi || !jeu) {
         if (erreur) {
             erreur->statut_erreur=1;
-            strcpy(erreur->msg_erreur, "Erreur d'accès à la donnée de l'ennemi\n");
+            strcpy(erreur->msg_erreur, "Erreur d'accès à la donnée de l'ennemi");
         }
     }
     // comptabiliser ennemi supprimé pour le score
@@ -160,7 +160,7 @@ void SupprimerEnnemi(Jeu* jeu, Erreur* erreur, Etudiant* ennemi) {
         }
         if (!prec) {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Impossible de supprimer l'ennemi : ennemi introuvable\n");
+            strcpy(erreur->msg_erreur, "Impossible de supprimer l'ennemi : ennemi introuvable");
             return;
         }
         prec->next = ennemi->next;

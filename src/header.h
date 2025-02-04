@@ -16,7 +16,7 @@
 #define NB_TYPES_ENNEMIS 6
 #define NB_TYPES_TOURELLES 6
 #define MAX_SCORES 10
-#define MAX_NIVEAUX 5
+#define MAX_NIVEAUX 10
 #define MAX_NAME_LEN 256
 #define MAX_SAVE 100
 

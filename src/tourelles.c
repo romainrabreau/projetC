@@ -8,7 +8,7 @@ const TypeTourelle TYPES_TOURELLES[] = {
     {'B', 10, 120, "BU", "Maxi mur de livres, ralentit les étudiants"},
     {'P', 2, 200, "Feuille de présence", "Immobilise l'étudiant pendant 2 tours"},
     {'E', 2, 200, "Emmanuel Lazard", "Dégâts de zone sur 3 lignes en même temps et 3 cases devant"},
-    {'R', 1, 160, "Eduroam", "Comportement aléatoire, une fois sur trois, l'ennemi recule, avance de 1, ou avance de 2"},
+    {'R', 1, 100, "Eduroam", "Comportement aléatoire, une fois sur trois, l'ennemi recule, avance de 1, ou avance de 2"},
 };
 
     // tableau ASCII Art de l'ordinateur
@@ -128,20 +128,22 @@ Tourelle * InitialisationTourelles(int * cagnotte, Erreur* erreur){
         // vérifie la conformité de l'entrée utilisateur
         cout_total = VerifEntreeLigne(ligne_tourelles, erreur);
         if (cout_total == -1) {
-            printf(ANSI_TEXTE_BLEU_MOYEN "   %s " ANSI_RESET, erreur->msg_erreur);
+            printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC "   %s " ANSI_RESET, erreur->msg_erreur);
             printf(ANSI_RESET);
+            printf("\n");
             erreur->statut_erreur=0;
             printf(ANSI_BG_ROUGE ANSI_TEXTE_BLANC"  × Veuillez re-placer les tourelles en respectant le format et les symboles ×   " ANSI_RESET);
+            printf("\n");
             i--;
             continue;
         }
         if (cout_total > *cagnotte) {
-            printf("Vous avez dépassé le solde de votre cagnotte de " ANSI_BG_BLEU_MEGA_LIGHT "%d ECTS" ANSI_RESET", replacez s.v.p.\n", cout_total - *cagnotte);
+            printf("Vous avez dépassé le solde de votre cagnotte de " ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_MOYEN "%d ECTS" ANSI_RESET", replacez s.v.p.\n", cout_total - *cagnotte);
             i--;
             continue;
         }
         else {
-            printf("Vous avez dépensé " ANSI_BG_BLEU_MEGA_LIGHT "%d ECTS" ANSI_RESET" pour cette ligne\n", cout_total);
+            printf("Vous avez dépensé " ANSI_BG_BLEU_MEGA_LIGHT ANSI_TEXTE_BLEU_MOYEN "%d ECTS" ANSI_RESET" pour cette ligne\n", cout_total);
             *cagnotte -= cout_total;
             //met à jour le premier et le dernier de la liste chaînée
             dernier = AjouterTourelles(&premier, dernier, ligne_tourelles, i, erreur);
@@ -165,7 +167,7 @@ int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur) {
     */
    if (!ligne_tourelles) {
          erreur->statut_erreur = 1;
-         strcpy(erreur->msg_erreur, "l'entrée est vide\n");
+         strcpy(erreur->msg_erreur, "l'entrée est vide");
          return -1;
    }
     int positions[NB_EMPLACEMENTS] = {0};  // Pour marquer les positions utilisées
@@ -184,12 +186,12 @@ int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur) {
         // validité de la position
         if (position < 1 || position > NB_EMPLACEMENTS) {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Le numéro de l'emplacement entré est invalide\n");
+            strcpy(erreur->msg_erreur, "Le numéro de l'emplacement entré est invalide");
             return -1;
         }
         if (positions[position-1]){
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Vous ne pouvez pas placer deux tourelles au même endroit\n");
+            strcpy(erreur->msg_erreur, "Vous ne pouvez pas placer deux tourelles au même endroit");
             return -1;
         }
         // une tourelle a été placée sur cette position
@@ -202,14 +204,14 @@ int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur) {
         ptr++; // on avance jusqu'à l'espace
         if (*ptr != ' ') {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Assurez-vous d'avoir un espace entre le symbole et le numéro de l'emplacement\n");
+            strcpy(erreur->msg_erreur, "Assurez-vous d'avoir un espace entre le symbole et le numéro de l'emplacement");
             return -1;
         }
         ptr++;
         // doit être un int
         if (*ptr > '9' || *ptr < '0') {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Le format de l'emplacement entré est invalide\n");
+            strcpy(erreur->msg_erreur, "Le format de l'emplacement entré est invalide");
             return -1;
         }
         for (; *ptr <= '9' && *ptr >= '0'; ptr++);
@@ -217,7 +219,7 @@ int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur) {
         // si après le nombre il n'y a pas de virgule ou de retour à la ligne c'est invalide
         if (*ptr && *ptr != ',' && *ptr != '\n') {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Assurez-vous d'avoir une virgule ou un retour à la ligne après le numéro de l'emplacement\n");
+            strcpy(erreur->msg_erreur, "Assurez-vous d'avoir une virgule ou un retour à la ligne après le numéro de l'emplacement");
             return -1;
         }
         if (*ptr == '\n') break;
@@ -226,7 +228,7 @@ int VerifEntreeLigne(char * ligne_tourelles, Erreur* erreur) {
     }
     if (nb_matchs != 2) {
         erreur->statut_erreur = 1;
-        strcpy(erreur->msg_erreur, "Assurez-vous d'avoir le même nombre de symboles et de numéros d'emplacement\n");
+        strcpy(erreur->msg_erreur, "Assurez-vous d'avoir le même nombre de symboles et de numéros d'emplacement");
         return -1;
     }
     
@@ -290,7 +292,7 @@ void LibererTourelles(Tourelle* premier) {
 void SupprimerTourelle(Jeu* jeu, Erreur* erreur, Tourelle* tourelle) {
     if (!tourelle || !jeu) {
         erreur->statut_erreur=1;
-        strcpy(erreur->msg_erreur, "Erreur d'accès à la donnée de l'ennemi\n");
+        strcpy(erreur->msg_erreur, "Erreur d'accès à la donnée de l'ennemi");
     }
 
     // chainage
@@ -305,7 +307,7 @@ void SupprimerTourelle(Jeu* jeu, Erreur* erreur, Tourelle* tourelle) {
         }
         if (!prec) {
             erreur->statut_erreur = 1;
-            strcpy(erreur->msg_erreur, "Impossible de supprimer la tourelle : ennemi introuvable\n");
+            strcpy(erreur->msg_erreur, "Impossible de supprimer la tourelle : ennemi introuvable");
             return;
         }
         prec->next = tourelle->next;

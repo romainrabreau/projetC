@@ -238,7 +238,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         if (e->prev_line != NULL){
             int diff = (e->position - deplacement) - e->prev_line->position ;
             // si l'ennemi est trop proche de celui de devant
-            if (diff <= 0 ){
+            if (diff <= 0 && (e->position - (e->prev_line->position + 1) < deplacement)){
                 deplacement = e->position - (e->prev_line->position + 1);
             }
         }
@@ -246,7 +246,7 @@ void DeplacerEnnemis(Jeu* jeu, Erreur* erreur) {
         if (e->next_line != NULL){
             int diff = e->next_line->position - (e->position - deplacement);
             // si l'ennemi est trop proche de celui de derrière
-            if (diff <= 0 ){
+            if (diff <= 0 && (e->next_line->position - (e->position - 1) < deplacement)){
                 deplacement = e->next_line->position - (e->position - 1);
             }
         }
